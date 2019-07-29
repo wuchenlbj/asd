@@ -1,0 +1,63 @@
+<template>
+  <transition name="el-fade-in-linear">
+    <router-view></router-view>
+  </transition>
+</template>
+
+<script>
+export default {
+  name: 'app',
+  watch: {
+    $route(to, from) {
+      if (!to.matched.length) {
+        this.$router.push('/404')
+      }
+    }
+  }
+}
+</script>
+<style >
+html,
+body {
+  color: #484744;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  padding-right: 0 !important;
+}
+.el-dialog {
+  border: 1px solid rgb(0, 119, 255);
+  border-bottom: 2px solid rgb(0, 119, 255);
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.4), 0px 0px 90px rgba(0, 0, 0, 0.4);
+}
+.el-dialog__body {
+  padding: 10px 10px;
+}
+
+.webuploader-container {
+	position: relative;vertical-align: middle;
+}
+.webuploader-element-invisible {
+	position: absolute !important;
+	clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
+    clip: rect(1px,1px,1px,1px);
+}
+.webuploader-pick {
+  cursor: pointer;
+	width:50px;
+	height: 30px;
+	overflow: hidden;
+}
+
+
+.webuploader-pick-disable {
+	opacity: 0.6;
+	pointer-events:none;
+
+}
+input[multiple] {
+  width: 0px;
+}
+</style>
+

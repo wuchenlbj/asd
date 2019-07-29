@@ -1,0 +1,209 @@
+<!--项目计划-接转项目-->
+<template>
+  <div class="xmtj" style="height:100%;overflow-y:hidden;">
+    <el-button type="primary" @click="jzxm">项目接转</el-button>
+    <exxls :tb-obj="tbobj"  :file-name="pagename" :header-num=2 :tb-title="pagename"></exxls>
+    <el-form :inline="true" label-width="120px" style='float:right;display: block;'>
+      <el-form-item label="接转年度:">
+        <el-date-picker align="right" type="year" value-format="yyyy" @change="changeyear" v-model="Dyear" placeholder="选择年">
+        </el-date-picker>
+      </el-form-item>
+
+    </el-form>
+    <h2 class="headtitle">陕西延长石油（集团）有限责任公司{{Dyear}}年度科技投资计划接转项目明细表</h2>
+    <el-table ref="htqt" v-loading="loadingtb" :data="tableData" :height="tableHeight" border tooltip-effect="light" style="width: 100%" header-row-class-name="headclass">
+      <el-table-column fixed label="序号" align='center'>
+        <el-table-column label="总" width="50" prop="XMXHZ"></el-table-column>
+        <el-table-column label="分" width="50" prop="XMXHF"></el-table-column>
+      </el-table-column>
+      <el-table-column fixed label="项目编号" show-overflow-tooltip width="120" prop="XMBH"> </el-table-column>
+      <el-table-column fixed label="项目名称" show-overflow-tooltip width="120" prop="XMMC"> </el-table-column>
+      <el-table-column fixed label="课题编号" show-overflow-tooltip width="120" prop="KTBH"></el-table-column>
+      <el-table-column fixed label="课题名称" show-overflow-tooltip width="120" prop="KTMC"></el-table-column>
+      <el-table-column label="承担单位" width="120" prop="FZDWDMMC"></el-table-column>
+      <el-table-column label="项目负责人" width="120" prop="XMFZR"></el-table-column>
+      <el-table-column label="起止时间(年月)" width="150">
+        <template slot-scope="scope">
+          <span>{{ scope.row.JHQSSJ|parseTime3('yyyy.MM') }}-{{ scope.row.JHZZSJ|parseTime3('yyyy.MM') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="费用明细(万元)" align='center'>
+        <el-table-column label="总费用" width="80" prop="ZFY"></el-table-column>
+        <el-table-column label="使用计划" align='center'>
+          <el-table-column v-for="(item,index) in syjh" :key="index" v-bind:label="item.name" v-bind:prop="'SYJH'+item.id" show-overflow-tooltip width="90"></el-table-column>
+        </el-table-column>
+      </el-table-column>
+      <el-table-column label="项目级别" prop="XMJBDMMC" width="120"></el-table-column>
+      <el-table-column label="资金来源" prop="ZJLYMC"></el-table-column>
+      <el-table-column label="项目批次" prop="XMPCDMMC"></el-table-column>
+      <el-table-column label="备注" prop="BZ"></el-table-column>
+    </el-table>
+
+    <!-- 导入Dialog -->
+    <el-dialog  v-dialogDrag title="项目接转" width="1300px" max-height="600" :close-on-click-modal="false" :visible.sync="dialogFormVisible">
+      <div v-loading="loading2">
+        <el-date-picker align="right" type="year" value-format="yyyy" @change="changeyear2" style="width:145px;" v-model="Dyear2" placeholder="选择接转的年度">
+        </el-date-picker>
+        <el-button style="margin-left:2px;" type="primary" icon="el-icon-edit" @click="submitForm()">全部接转</el-button>
+        <span class="diacount" v-if="FormtableData.length>0">{{Dyear2}}年课题{{diacount}}个</span>
+        <el-table :data="FormtableData" height="400" border style="width: 100%;margin-top:5px;" header-row-class-name="headclass">
+          <el-table-column type="index" label="序号" width="50"></el-table-column>
+          <el-table-column label="项目编号" width="110" show-overflow-tooltip prop="XMBH"> </el-table-column>
+          <el-table-column label="项目名称" width="100" show-overflow-tooltip prop="XMMC"> </el-table-column>
+          <el-table-column label="课题编号" width="120" show-overflow-tooltip prop="KTBH"></el-table-column>
+          <el-table-column label="课题名称" width="120" show-overflow-tooltip prop="KTMC"></el-table-column>
+          <el-table-column label="承担单位" width="120" prop="FZDWDMMC"></el-table-column>
+          <el-table-column label="项目负责人" width="120" prop="XMFZR"></el-table-column>
+          <el-table-column label="计划总费用(万元)" width="120" prop="ZFY"></el-table-column>
+          <el-table-column v-bind:label="Dyear2+'年挂账金额(万元)'" width="140" prop="GZJE"></el-table-column>
+
+          <el-table-column label="备注" prop="BZ"></el-table-column>
+        </el-table>
+      </div>
+
+    </el-dialog>
+
+  </div>
+</template>
+<script>
+import UploadExcel from 'components/Common/UploadExcel'
+import { saveExcelData, getXmXLData, getXmJZByNDData, saveXmJZData } from 'api/xmgl/xdjh/index.js'
+import msg from 'utils/loadmsg'
+import bus from 'components/bus'
+import { getcurYear } from 'utils/index'
+import exxls from 'common/xlsx/tabletoexcel'
+import { mapGetters } from 'vuex'; // GNM
+export default {
+  name: 'jzxm',
+  components: {
+    UploadExcel, exxls
+  },
+  data() {
+    return {
+       tbobj: {},
+      pagename:'陕西延长石油（集团）有限责任公司年度科技投资计划接转项目明细表',
+      diacount: 0,
+      tableHeight: 600,
+      dialogFormVisible: false,
+      loadingtext: '导入数据中,请稍后',
+      loading2: false,
+      loadingtb: false,
+      syjh: [], // 使用计划
+      tableData: [], // 页面table数据
+      FormtableData: [], // 表单table数据
+      editRowData: {}, // 编辑行数据
+      Dyear: '',
+      Dyear2: ''
+    }
+  },
+   // GNM
+  computed: {
+    ...mapGetters(['rightHeight'])
+  },
+  watch: {
+    rightHeight (val) {
+      this.tableHeight = val - 90
+    }
+  },
+  mounted() {
+    this.tableHeight = this.rightHeight - 90 // GNM
+
+    this.Dyear = getcurYear()
+    // 查询年度数据
+    this.getXMLXData()
+    this.tbobj = this.$refs.htqt
+
+    // GNM 添加简单的功能说明
+    this.$store.dispatch('SetHelpContent', `
+    <span style="font-size:14px;font-weight:bold">功能说明：</span><br/>
+    <span>&nbsp;&nbsp;1、点击"项目接转"按钮，可以配置要接转的项目</span><br/>
+    <span>&nbsp;&nbsp;2、在弹窗中显示的项目，是没有验收结束并可以接转的项目</span>
+    `)
+  },
+  destroyed () {
+    this.$store.dispatch('SetHelpContent', '')
+  },
+  methods: {
+
+    // 接转项目
+    submitForm() {
+      if (!this.Dyear2) {
+        msg.showwarning('请先选择年度')
+        return false
+      }
+      if (this.FormtableData.length == 0) {
+        msg.showwarning('没有需要接转的项目')
+        return false
+      }
+      var htm = `你确定要将 ${this.Dyear2} 年的所有课题结转到 ${parseInt(this.Dyear2) + 1} 年吗？`
+      this.$confirm(htm, '删除提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          this.loading2 = true
+          saveXmJZData({ nd: this.Dyear2 }).then(response => {
+            this.loading2 = false
+            if (response.data.status == 200) {
+              msg.showsuccess('接转成功')
+              this.dialogFormVisible = false
+            } else {
+              msg.showwarning('运行错误!' + response.data.msg)
+            }
+          })
+        })
+        .catch(() => { })
+    },
+    // 接转项目
+    jzxm() {
+      this.dialogFormVisible = true
+    },
+    // 获取年度接转数据
+    getXMLXData() {
+      // 1 代表接转
+      var qry = {
+        nd: this.Dyear,
+        type: 1
+      }
+      this.loadingtb = true
+      getXmXLData(qry).then(response => {
+        this.tableData = response.data
+        this.loading2 = false
+        this.loadingtb = false
+      })
+    },
+    changeyear2(val) {
+      this.loading2 = true
+      getXmJZByNDData({ nd: this.Dyear2 }).then(response => {
+        this.FormtableData = response.data
+        this.loading2 = false
+        this.diacount = this.FormtableData.length
+      })
+    },
+    changeyear(val) {
+      this.Dyear = '' + val
+      // 查询年度数据
+      this.getXMLXData()
+    }
+  }
+}
+</script>
+<style>
+.is-light {
+  max-width: 90%;
+}
+</style>
+
+<style scoped>
+.xmtj {
+  margin-right: 5px;
+}
+.headtitle {
+  text-align: center;
+  line-height: 30px;
+}
+.diacount {
+  float: right;
+}
+</style>

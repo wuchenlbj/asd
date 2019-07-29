@@ -1,0 +1,176 @@
+<!-- 验收管理 验收申报 -->
+<template>
+  <div class="jfsb">
+    <el-tabs activeName="yssbcl" tabPosition="left">
+      <el-tab-pane label="申报验收" name="yssbcl">
+        <!-- 验收申报 -->
+        <file-upload :list-height="tableHeight - 30" :spcFolder="spcFolder">
+        </file-upload>
+        <div v-show="xmxxRow" style="margin-top:10px;left:300px;">
+          <el-button type="primary" @click="shenhe">审核</el-button>
+          <span>说明：选择已上报的文件，进行审核</span>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="验收记录" name="ysjl">
+        <!-- 申报记录 -->
+        <el-table :data="tableData2" v-loading="loading2" border :height="tableHeight" style="width: 99.9%;" highlight-current-row header-row-class-name="headclass">
+          <el-table-column label="上报人" prop="SBRMC" show-overflow-tooltip width="80"></el-table-column>
+          <el-table-column label="上报时间" prop="SBSJ" width="90">
+            <template slot-scope="scope">
+              <span class="span-title">{{scope.row.SBSJ|parseTime3('yyyy-MM-dd')}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="验收结果" prop="YSJG" width="90">
+            <template slot-scope="scope">
+              <span class="span-title" v-if="scope.row.YSJG=='-1'">等待审核</span>
+              <span class="span-title" style="color:red;" v-if="scope.row.YSJG=='0'">审核未通过</span>
+              <span class="span-title" style="color:green;" v-if="scope.row.YSJG=='1'">通过</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="验收时间" prop="YSSJ" width="100">
+            <template slot-scope="scope">
+              <span class="span-title" v-if="scope.row.YSSJ">{{scope.row.YSSJ|parseTime3('yyyy-MM-dd'||'')}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="验收意见" prop="YSYJ" show-overflow-tooltip min-width="110"></el-table-column>
+        </el-table>
+      </el-tab-pane>
+    </el-tabs>
+    <!--编辑Dialogxmsb-->
+    <el-dialog v-dialogDrag title="验收信息" width="720px" append-to-body :visible.sync="dialogVisible" :close-on-click-modal="false">
+      <el-form :model="form" ref="ruleForm" :rules="rules" :inline="true" label-width="90px" style="width:1200px;">
+        <el-form-item label="验收结果" prop="YSJG">
+          <el-radio-group v-model="form.YSJG">
+            <el-radio :label="1">通过</el-radio>
+            <el-radio :label="0">不通过</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="验收意见" prop="YSYJ" style="width:100%;">
+          <el-input type="textarea" v-model="form.YSYJ" style="width:365px;" placeholder="验收意见"></el-input>
+        </el-form-item>
+        <el-form-item style="margin-left:100px;width:100%;">
+          <el-button type="primary" :loading="loadingbtnsave" @click="submitForm('ruleForm')">保存配置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+  </div>
+</template>
+
+<script >
+import { mapGetters } from 'vuex'
+import store from '@/store/' // GNM vuex store状态管理
+import { saveYssb, getysjl } from 'api/xmgl/ysgl/index.js'
+import msg from 'utils/loadmsg'
+import FileUpload from 'views/FileUpload'
+
+export default {
+  name: 'yssb',
+  data() {
+    return {
+      activeName: 'yssbcl',
+      tableHeight: 0,
+      dialogVisible: false,
+      spcFolder: {
+        // 指定需要打开的文件夹
+        name: '验收申报材料', // 文件夹名称
+        qdid: '2a2774cc-4d5a-4a3a-90e4-c98071e7a874' // 文件夹所属清单
+      },
+      tableData2: [],
+      loading2: false,
+      loadingbtnsave: false,
+      loading: false,
+      form: {
+        KTBH: '',
+        YSJG: '',
+        YSYJ: ''
+      },
+      rules: {
+        YSJG: [{ required: true, message: '请选择验收结果', trigger: 'change' }]
+      }
+    }
+  },
+  components: {
+    FileUpload
+  },
+  computed: {
+    ...mapGetters(['xmxxRow', 'panelHeight'])
+  },
+  watch: {
+    xmxxRow: function(row) {
+      this._setuploadinfo()
+    },
+    panelHeight(val) {
+      this.setHeight()
+    },
+  },
+  mounted() {
+    if (this.xmxxRow) {
+      // GNM 为了触发自动查询，在xmxxRow中添加属性
+      let tmpRow = this.xmxxRow
+      tmpRow.autoQuery  = 'yssb'
+      this.$store.dispatch('set_cur_xmrow', tmpRow)
+      this._setuploadinfo()
+    }
+
+    this.setHeight()
+  },
+  methods: {
+    setHeight() {
+      this.tableHeight = parseInt(this.panelHeight * 0.8)
+    },
+    // 上传组件传递的参数对象,GNM 更改，直接查询
+    _setuploadinfo() {
+      this._getysjl(this.xmxxRow.KTBH)
+    },
+    // 打开审核窗口
+    shenhe() {
+      var needshenhe = false
+      for (var i = 0; i < this.tableData2.length; i++) {
+        if (!this.tableData2[i].YSJG || this.tableData2[i].YSJG == '-1') {
+          needshenhe = true // 为空需要审核
+        }
+      }
+      if (needshenhe) {
+        this.dialogVisible = true
+      } else {
+        msg.showwarning('没有要审核的文件')
+      }
+    },
+    // 获取验收记录
+    _getysjl(ktbh) {
+      this.loading2 = true
+      getysjl({ ktbh: ktbh }).then(response => {
+        this.tableData2 = response.data
+        this.loading2 = false
+      })
+    },
+
+    // 保存项目立项
+    submitForm(formName) {
+      var _this = this
+      this.loadingbtnsave = true
+      this.form.KTBH = this.xmxxRow.KTBH
+      saveYssb(this.form).then(response => {
+        if (response.data.status == 200) {
+          msg.showsuccess('保存数据成功')
+          _this.loadingbtnsave = false
+          _this.dialogVisible = false
+          // 查询
+          this._getysjl(_this.xmxxRow.KTBH)
+        }
+        if (response.data.status == 500) {
+          msg.showwarning(response.data.msg)
+        }
+      })
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+.el-form {
+  width: 680px;
+}
+.el-form-item {
+  margin-bottom: 10px;
+}
+</style>

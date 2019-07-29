@@ -1,0 +1,25 @@
+.loadmsg{
+  background-color: #faf0cd;
+  border: 1px solid #f3e041;
+  width: 200px;
+  min-width: 200px;
+}
+.tip-icon {
+  display: inline-block; // width: 20px;
+  // height: 100px;
+  width: 20px;
+  height: 20px;
+  background: url(../assets/tip.png) 0 0 no-repeat;
+  margin: -2px 5px 0 0;
+}
+
+.tip-success {
+  background-position: 0 0;
+}
+
+.tip-error {
+ background-position: -20px 0;
+}
+.tip-warn {
+  background-position: -40px 0;
+}

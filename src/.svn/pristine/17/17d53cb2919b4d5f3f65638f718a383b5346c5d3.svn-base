@@ -1,0 +1,47 @@
+<!-- 负责单位下拉树 -->
+<template>
+  <div class="list">
+    <tree-select clearable v-show="treeDataFZDW.length>0" size="mini" :treeData="treeDataFZDW" :treeProps="treeProps" placeholder="参加单位" v-model="listQuery.FZDWDM" style="width:120px;" :multiple="false" @setSelectedId="setSelectedIdCJDW">
+    </tree-select>
+  </div>
+</template>
+
+<script >
+import treeSelect from 'components/Common/treeSelect/tree.vue'
+import { GetUnitTree } from 'api/common/xm.js'
+import bus from 'components/bus'
+export default {
+  name: 'combfzdw',
+  components: {
+    treeSelect
+  },
+  data() {
+    return {
+      treeDataFZDW: [],
+      listQuery: {
+        listQuery: ''
+      },
+      // 下拉树配置项
+      treeProps: {
+        label: 'label',
+        children: 'children',
+        value: 'id'
+      }
+
+    }
+  },
+  mounted() {
+    GetUnitTree().then(response => {
+      this.treeDataFZDW = response.data
+    })
+  },
+  methods: {
+    setSelectedIdCJDW(val) {
+      bus.$emit('setFzdw', val)
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+
+</style>

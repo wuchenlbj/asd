@@ -1,0 +1,71 @@
+<!-- 成果管理-信息采集 -->
+<template>
+	<div class="jfsb">
+	<el-row>
+		 	 <el-col :span="4" class='actions-top'>
+		         <el-button type='primary' icon='plus'    size="small" @click='onDeleteUser(true)'>导入</el-button> 
+	        </el-col>
+	        <el-col :offset="12" :span="8">
+	       
+	        </el-col>
+	 	 </el-row>
+
+	 <el-table 
+    border
+    style="width: 100%">
+    <el-table-column
+      prop="date"
+      label="序号"
+      width="100">
+    </el-table-column>
+    <el-table-column
+      prop="name"
+      label="交流会名称"
+      width="120">
+    </el-table-column>
+    <el-table-column
+      prop="date"
+      label="主办单位"
+      width="100">
+    </el-table-column>
+    <el-table-column
+      prop="address"
+      label="协办单位"  width="100">
+    </el-table-column>
+      <el-table-column
+      prop="address"   width="100"
+      label="会议主题">
+    </el-table-column>
+      
+     <el-table-column
+      prop="address"  width="100"
+      label="会议时间">
+    </el-table-column>
+    
+     <el-table-column
+      prop="address"   width="100"
+      label="会议地点">
+    </el-table-column>
+     <el-table-column
+      prop="address"   width="100"
+      label="参与人员">
+    </el-table-column> 
+     <el-table-column
+      prop="address"   width="100"
+      label="备注">
+    </el-table-column>
+     
+  </el-table>
+  </div>
+</template>
+
+<script >
+	export default{
+		name:'xxhxxcj',
+		data(){
+			return{
+
+			}
+		}
+	}
+</script>

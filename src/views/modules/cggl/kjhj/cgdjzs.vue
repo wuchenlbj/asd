@@ -1,0 +1,377 @@
+<!-- 成果管理-成果登记证书 -->
+<template>
+  <div class="jfsb">
+    <div class="filter-container">
+      <el-button-group>
+        <el-button size="mini" class="filter-item" type="primary" @click="exportdata">导入Excel</el-button>
+        <el-button size="mini" class="filter-item" type="primary" @click="newGD">添加证书</el-button>
+        <el-button size="mini" class="filter-item" type="primary" @click="del">删除</el-button>
+      </el-button-group>
+
+      <exxls :tb-obj="tbobj" :file-name="pagename" :tb-title="pagename" :itemStyle="'{display: inline-block;margin-bottom: 10px;vertical-align: middle;}'"></exxls>
+
+      <el-upload class="upload-demo" :action="actionurl" :show-file-list="false" :on-error="onerror" :before-upload="beforeAvatarUpload" :headers="headersData" :on-success="filesuccess" :data="uploadData" :multiple="false">
+        <el-button type="warning" :loading="uploadbtn">上传扫描件</el-button>
+      </el-upload>
+
+      <el-input size="mini" class="filter-item" style="width: 120px;" @change='_GetTGXX' placeholder="成果项目名称" v-model="listQuery.cgmc">
+      </el-input>
+      <el-input size="mini" class="filter-item" style="width: 120px;" @change='_GetTGXX' placeholder="完成人员" v-model="listQuery.wcry">
+      </el-input>
+    </div>
+
+    <el-table ref="cgdjzs" border style="width: 99.9%;margin-top:5px;" highlight-current-row @cell-click='cellclick' :data="tableData" @row-dblclick="rowdblclick" :height="tableHeight" v-loading="loading" highlight-current-row header-row-class-name="headclass">
+      <el-table-column type="index" label="序号" width="50"></el-table-column>
+      <el-table-column prop="NAME" label="成果项目名称" show-overflow-tooltip width="110px"></el-table-column>
+      <el-table-column prop="WCRY" label="主要完成人员" show-overflow-tooltip width="110px"></el-table-column>
+      <el-table-column prop="WCDW" label="完成单位" show-overflow-tooltip width="110px"></el-table-column>
+      <el-table-column prop="SSEJDW" label="所属二级单位" show-overflow-tooltip width="110px"></el-table-column>
+      <el-table-column prop="FZDW" label="发证单位" show-overflow-tooltip width="110px"></el-table-column>
+      <el-table-column prop="CWDJH" label="成果登记号" show-overflow-tooltip width="110px"></el-table-column>
+      <el-table-column prop="DJRQ" label="登记日期" show-overflow-tooltip width="110px">
+        <template slot-scope="scope">
+          <span class="span-title">{{scope.row.DJRQ|parseTime3('yyyy-MM-dd')}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="CGJJ" label="成果简介" show-overflow-tooltip width="110px"></el-table-column>
+      <el-table-column prop="FILEPATH" label="扫描件" show-overflow-tooltip width="120">
+        <template slot-scope="scope">
+          <a style="color:blue;" v-if="scope.row.FILEPATH" :href="actiondownurl+'filename='+scope.row.FILENAME+'&filepath='+scope.row.FILEPATH">{{scope.row.FILENAME}}</a>
+          <span v-else>未上传</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="BZ" label="备注" min-width="120" show-overflow-tooltip> </el-table-column>
+    </el-table>
+    <el-pagination @current-change="handleCurrentChange" background :current-page.sync="listQuery.page" :page-size="listQuery.limit" layout="total, prev, pager, next" :total="total">
+    </el-pagination>
+
+    <!-- 导入Dialog -->
+    <el-dialog v-dialogDrag title="导入Excel" width="1300px" top="2vh" max-height="600" :close-on-click-modal="false" :visible.sync="dialogExcelVisible">
+      <div v-loading="loading2" :element-loading-text="loadingtext">
+        <UploadExcel :hideYear="false" tableName="KJGLPT_CG_CGDJ" @loadingexcel="loadingexcel" @excelData="getExcelData" @loadingexcelerror="loadingexcelerror"></UploadExcel>
+        <el-button style="margin-left:2px;" type="primary" @click="submitExcelForm()">保存</el-button>
+
+        <el-table :data="FormtableData" height="400" border style="width: 100%;margin-top:5px;" header-row-class-name="headclass">
+          <el-table-column type="index" label="序号" width="50"></el-table-column>
+          <el-table-column prop="NAME" label="成果项目名称" show-overflow-tooltip width="110px"></el-table-column>
+          <el-table-column prop="WCRY" label="主要完成人员" show-overflow-tooltip width="110px"></el-table-column>
+          <el-table-column prop="WCDW" label="完成单位" show-overflow-tooltip width="110px"></el-table-column>
+          <el-table-column prop="SSEJDW" label="所属二级单位" show-overflow-tooltip width="110px"></el-table-column>
+          <el-table-column prop="FZDW" label="发证单位" show-overflow-tooltip width="110px"></el-table-column>
+          <el-table-column prop="CWDJH" label="成果登记号" show-overflow-tooltip width="110px"></el-table-column>
+          <el-table-column prop="DJRQ" label="登记日期" show-overflow-tooltip width="110px"></el-table-column>
+          <el-table-column prop="CGJJ" label="成果简介" show-overflow-tooltip width="110px"></el-table-column>
+          <el-table-column prop="BZ" label="备注" show-overflow-tooltip width="110px"></el-table-column>
+        </el-table>
+      </div>
+    </el-dialog>
+
+    <!--编辑Dialogxmsb-->
+    <el-dialog v-dialogDrag title="成果登记维护" width="960px" append-to-body :visible.sync="dialogVisible" :close-on-click-modal="false">
+
+      <el-form :model="form" ref="ruleForm" :rules="rules" :inline="true" label-width="110px" style="width:100%;">
+
+        <el-form-item label="成果项目名称" prop="NAME">
+          <el-input v-model="form.NAME" style="width:150px;" placeholder="成果项目名称"></el-input>
+        </el-form-item>
+        <el-form-item label="完成人员" prop="WCRY">
+          <el-input v-model="form.WCRY" style="width:150px;" placeholder="主要完成人员"></el-input>
+        </el-form-item>
+        <el-form-item label="完成单位" prop="WCDW">
+          <el-input v-model="form.WCDW" style="width:150px;" placeholder="完成单位"></el-input>
+        </el-form-item>
+        <el-form-item label="所属二级单位" prop="SSEJDW">
+          <el-input v-model="form.SSEJDW" style="width:150px;" placeholder="所属二级单位"></el-input>
+        </el-form-item>
+        <el-form-item label="发证单位" prop="FZDW">
+          <el-input v-model="form.FZDW" style="width:150px;" placeholder="发证单位"></el-input>
+        </el-form-item>
+        <el-form-item label="成果登记号" prop="CWDJH">
+          <el-input v-model="form.CWDJH" placeholder="成果登记号" style="width:150px;"></el-input>
+        </el-form-item>
+        <el-form-item label="登记日期" prop="DJRQ" style="width:100%;">
+          <el-date-picker v-model="form.DJRQ" format="yyyy-MM-dd" value-format="yyyy-MM-dd" type="date" style="width:150px;" placeholder="登记日期">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="成果简介" prop="CGJJ">
+          <el-input type="textarea" v-model="form.CGJJ" placeholder="成果简介" style="width:320px;"></el-input>
+        </el-form-item>
+        <el-form-item label="备注" prop="BZ">
+          <el-input type="textarea" v-model="form.BZ" placeholder="备注" style="width:320px;"></el-input>
+        </el-form-item>
+        <el-form-item style="margin-left:100px;">
+          <el-button type="primary" :loading="loadingbtn" @click="submitForm('ruleForm')">保存配置</el-button>
+        </el-form-item>
+
+      </el-form>
+    </el-dialog>
+
+  </div>
+</template>
+
+<script >
+import exxls from 'common/xlsx/tabletoexcel'
+import UploadExcel from '../../../../components/Common/UploadExcel'
+import {
+  getDJZSList,
+  saveDJZSData,
+  saveExcelDataZS,
+  dropDJZS,
+  saveFileByFID
+} from 'api/cggl/cgdj'
+import msg from 'utils/loadmsg'
+import { NewGuid } from '@/config/filter'
+import { mapGetters } from 'vuex'
+
+export default {
+  name: 'tgyy',
+  components: {
+    exxls,
+    UploadExcel
+  },
+  computed: {
+    ...mapGetters(['rightHeight'])
+  },
+  data() {
+    return {
+      tbobj: {},
+      pagename: '成果登记证书',
+      actiondownurl: process.env.WDK_BASE_API + 'api/DocDownload/GetFileInfo?',
+      actionurl: process.env.WDK_BASE_API + 'api/doc/SaveFileInfo',
+      uploadbtn: false,
+      headersData: {
+        moduleid: this.$store.getters.moduleid || ''
+      },
+      // 上传参数
+      uploadData: {
+        id: ''
+      },
+      // 导入相关
+      dialogExcelVisible: false,
+      dialogFormVisible: false,
+      loadingtext: '导入数据中,请稍后',
+      loadingbtn: false,
+      loading2: false,
+      selectRows: null,
+      FormtableData: [],
+      tableHeight: '500',
+      dialogVisible: false,
+      fileList: {},
+      form: {
+        BZ: '',
+        CGID: '',
+        DOCID: '',
+        LXFS: '',
+        JSYD: '',
+        SYFW: '',
+        TJYJ: '',
+        TBR: '',
+        WCRY: '',
+        TJDW: '',
+        CGMC: '',
+        TYPE: 'add'
+      },
+      total: null,
+      tableData: [],
+      loading: false,
+      listQuery: {
+        cgmc: '',
+        wcry: '',
+        page: 1,
+        limit: 30
+      },
+      rules: {
+        NAME: [
+          { required: true, message: '请输入成果项目名称', trigger: 'blur' }
+        ],
+        WCRY: [
+          { required: true, message: '请输入主要完成人员', trigger: 'blur' }
+        ]
+      }
+    }
+  },
+
+  watch: {
+    rightHeight(val) {
+      this.tableHeight = val - 130
+    }
+  },
+  mounted() {
+    this.tableHeight = this.rightHeight - 130
+    this._GetTGXX()
+    this.tbobj = this.$refs.cgdjzs
+  },
+  methods: {
+    beforeRemove(file, fileList) {
+      return this.$confirm(`确定移除 ${file.name}？`)
+    },
+    onerror(err, file, fileList) {
+      msg.showwarning(err)
+    },
+    beforeAvatarUpload(file) {
+      if (this.selectRows == null) {
+        msg.showwarning('请先选择相关数据行')
+        return false
+      }
+
+      var len = file.name.split('.')
+      const extension = file.name.split('.')[len.length - 1]
+      const isExcel = extension === 'png' || extension === 'jpg'
+      if (!isExcel) {
+        msg.showwarning('请上传图片格式的文件')
+        return false
+      }
+
+      this.uploadbtn = true
+    },
+    // 文件上传成功
+    filesuccess(response, file, fileList) {
+      var _this = this
+      // 保存文档库以及业务库
+      var fids = []
+      fids.push(_this.selectRows.CGID)
+
+      _this.fileList = {
+        tablename: 'kjglpt_cg_cgdj',
+        name: fileList[0].name,
+        fids: fids,
+        id: response.docid,
+        path: response.docpath,
+        wjsize: fileList[0].size
+      }
+
+      saveFileByFID(this.fileList).then(response => {
+        msg.showsuccess('上传成功')
+        _this.uploadbtn = false
+        _this._GetTGXX()
+      })
+    },
+    // 删除
+    del() {
+      if (this.selectRows == null) {
+        msg.showwarning('请先选择数据行')
+        return false
+      }
+      var _this = this
+      this.$confirm('确定要删除所选信息吗？', '删除提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          // 删除数据
+          msg.showloading('正在删除,请稍后...')
+          dropDJZS(this.selectRows).then(response => {
+            if (response.data) {
+              msg.showwarning(response.data)
+            } else {
+              // 删除成功
+              msg.showsuccess('删除成功')
+              // 重新查询
+              _this._GetTGXX()
+            }
+          })
+        })
+        .catch(() => {})
+    },
+    // 打开归档窗口
+    newGD() {
+      this.dialogVisible = true
+      this.$nextTick(function() {
+        this.$refs['ruleForm'].resetFields()
+        this.form.CGID = NewGuid()
+        this.form.TYPE = 'add'
+      })
+    },
+    rowdblclick(row, event) {
+      this.dialogVisible = true
+      this.$nextTick(function() {
+        this.form = row
+        this.form.KTBH = row.KTBH
+        this.form.TYPE = 'edit'
+      })
+    },
+    cellclick(row, column, cell, event) {
+      if (column.type != 'selection') {
+        this.selectRows = row
+      }
+    },
+    // 保存导入的excel
+    submitExcelForm() {
+      if (this.FormtableData.length == 0) {
+        msg.showwarning('请先导入数据,再进行保存')
+        return false
+      }
+
+      this.loading2 = true
+      this.loadingtext = '保存数据中,请稍后'
+      saveExcelDataZS(this.FormtableData).then(response => {
+        this.dialogExcelVisible = false
+        // 重新加载数据
+        this._GetTGXX()
+      })
+    },
+    // 保存登记证书
+    submitForm(formName) {
+      var _this = this
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          this.loadingbtn = true
+          saveDJZSData(this.form).then(response => {
+            msg.showsuccess('保存数据成功')
+            this.loadingbtn = false
+            this.dialogVisible = false
+            // 重新加载数据
+            this._GetTGXX()
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    },
+    // 导入excel
+    exportdata() {
+      this.dialogExcelVisible = true
+    },
+    // 获取登记证书信息
+    _GetTGXX() {
+      this.loading = true
+      getDJZSList(this.listQuery).then(response => {
+        this.tableData = response.data.rows
+        this.total = response.data.total
+        this.loading = false
+      })
+    },
+    // 分页选中
+    handleCurrentChange(val) {
+      this.listQuery.page = val
+      this._GetTGXX()
+    },
+    loadingexcel(res) {
+      this.loading2 = res
+      this.loadingtext = '导入数据中,请稍后'
+    },
+    loadingexcelerror() {
+      this.loading2 = false
+    },
+    getExcelData(data) {
+      this.FormtableData = data
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+.el-form {
+  width: 750px;
+}
+</style>
+<style>
+label {
+  font-weight: 500 !important;
+}
+.upload-demo {
+  float: left;
+  margin-right: 20px;
+}
+</style>

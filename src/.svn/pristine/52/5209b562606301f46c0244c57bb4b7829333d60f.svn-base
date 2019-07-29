@@ -1,0 +1,334 @@
+<!--项目计划-新立项目-->
+<template>
+  <div class="xmtj" style="height:100%;overflow-y:hidden;">
+
+    <div class="filter-container">
+      <el-dropdown size="mini" split-button style="float:left;" type="primary" @click="importdata">
+        导入新立Excel
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item @click.native="exportXls">导出查询数据(Excel)</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+      &nbsp;
+      <el-button-group>
+        <!-- <el-button size="mini" class="filter-item" icon="el-icon-upload2" type="primary" @click="importdata">导入新立Excel</el-button> -->
+
+        <el-button size="mini" class="filter-item" type="primary" @click="newXM">添加新立项目</el-button>
+        <el-button size="mini" class="filter-item" type="primary" @click="xmXD">项目下达</el-button>
+      </el-button-group>
+      <querylist @on-query="getXMLXData"></querylist>
+    </div>
+
+    <h2 class="headtitle">陕西延长石油（集团）有限责任公司{{this.listquery.JHND||'' }}年度科技投资计划新立项目明细表</h2>
+    <el-table highlight-current-row v-loading="loadingtb" :data="tableData" :height="tableHeight" @select='selectRow' @select-all='selectallRow' @row-dblclick="rowdblclick" border tooltip-effect="light" style="width: 100%" header-row-class-name="headclass">
+      <el-table-column fixed type="selection" width="55"></el-table-column>
+      <el-table-column fixed label="序号" align='center'>
+        <el-table-column label="总" width="50" prop="XMXHZ"></el-table-column>
+        <el-table-column label="分" width="50" prop="XMXHF"></el-table-column>
+      </el-table-column>
+      <el-table-column fixed show-overflow-tooltip label="项目编号" width="120" prop="XMBH"> </el-table-column>
+      <el-table-column fixed show-overflow-tooltip label="项目名称" width="120" prop="XMMC"> </el-table-column>
+      <el-table-column fixed show-overflow-tooltip label="课题编号" width="120" prop="KTBH"></el-table-column>
+      <el-table-column fixed show-overflow-tooltip label="课题名称" width="120" prop="KTMC"></el-table-column>
+      <el-table-column label="状态" width="85" prop="XMXD">
+        <template slot-scope="scope">
+          <span v-if="scope.row.XMXD==null||scope.row.XMXD=='0'">
+            <el-tag type="info">未下达</el-tag>
+          </span>
+          <span v-if="scope.row.XMXD=='1'">
+            <el-tag type="success">已下达</el-tag>
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="承担单位" width="120" prop="FZDWDMMC"></el-table-column>
+      <el-table-column label="项目负责人" width="100" prop="XMFZR"></el-table-column>
+      <el-table-column label="起止时间(年月)" width="150">
+        <template slot-scope="scope">
+          <span>{{ scope.row.JHQSSJ|parseTime3('yyyy.MM') }}-{{ scope.row.JHZZSJ|parseTime3('yyyy.MM') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="费用明细(万元)" align='center'>
+        <el-table-column label="总费用" width="80" prop="ZFY" align="right"></el-table-column>
+        <el-table-column label="使用计划" align='center'>
+          <el-table-column align="right" v-for="(item,index) in syjh" :key="index" v-bind:label="item.name" v-bind:prop="'SYJH'+item.id" show-overflow-tooltip width="90"></el-table-column>
+        </el-table-column>
+      </el-table-column>
+      <el-table-column label="项目级别" prop="XMJBDMMC" width="120"></el-table-column>
+      <el-table-column label="资金来源" prop="ZJLYMC"></el-table-column>
+      <el-table-column label="项目批次" prop="XMPCDMMC"></el-table-column>
+      <el-table-column label="备注" show-overflow-tooltip width="160" prop="BZ"></el-table-column>
+    </el-table>
+
+    <!-- 导入Dialog -->
+    <el-dialog v-dialogDrag title="导入Excel" width="1300px" top="2vh" max-height="600" :close-on-click-modal="false" :visible.sync="dialogFormVisible">
+      <div v-loading="loading2" :element-loading-text="loadingtext">
+        <UploadExcel :hideYear="true" tableName="KJGLPT_XMJBXX" dataType="0" @loadingexcel="loadingexcel" @excelData="getExcelData" @excelYear="excelYear"></UploadExcel>
+        <el-button style="margin-left:2px;" type="primary" @click="submitForm()">保存</el-button>
+
+        <el-table :data="FormtableData" height="400" border style="width: 100%;margin-top:5px;">
+          <el-table-column fixed label="序号" align='center'>
+            <el-table-column label="总" width="50" prop="XMXHZ"></el-table-column>
+            <el-table-column label="分" width="50" prop="XMXHF"></el-table-column>
+          </el-table-column>
+          <el-table-column fixed label="项目编号" width="110" show-overflow-tooltip prop="XMBH"> </el-table-column>
+          <el-table-column fixed label="项目名称" width="100" show-overflow-tooltip prop="XMMC"> </el-table-column>
+          <el-table-column fixed label="课题编号" width="120" show-overflow-tooltip prop="KTBH"></el-table-column>
+          <el-table-column fixed label="课题名称" width="120" show-overflow-tooltip prop="KTMC"></el-table-column>
+          <el-table-column label="承担单位" width="120" prop="FZDWDMMC"></el-table-column>
+          <el-table-column label="项目负责人" width="120" prop="XMFZR"></el-table-column>
+          <el-table-column label="起止时间(年月)" width="150">
+            <template slot-scope="scope">
+              <span>{{ scope.row.JHQSSJ|parseTime3('yyyy.MM') }}-{{ scope.row.JHZZSJ|parseTime3('yyyy.MM') }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="费用明细(万元)" align='center'>
+            <el-table-column label="总费用" width="80" prop="ZFY"></el-table-column>
+            <el-table-column label="使用计划" align='center'>
+              <el-table-column v-for="(item,index) in syjh" :key="index" v-bind:label="item.name" v-bind:prop="'SYJH'+item.id" show-overflow-tooltip width="90"></el-table-column>
+            </el-table-column>
+          </el-table-column>
+          <el-table-column label="项目级别" prop="XMJBDMMC" width="120"></el-table-column>
+          <el-table-column label="项目批次" prop="XMPCDMMC"></el-table-column>
+          <el-table-column label="资金来源" prop="ZJLYMC"></el-table-column>
+          <el-table-column label="备注" prop="BZ"></el-table-column>
+        </el-table>
+      </div>
+
+    </el-dialog>
+    <!--编辑Dialogxmsb-->
+    <el-dialog v-dialogDrag title="计划资料修改" width="1000px" append-to-body :visible.sync="dialogVisible">
+      <xmsb ref="childform" @getXMInfo="getXMInfo"></xmsb>
+    </el-dialog>
+  </div>
+</template>
+<script>
+// 组件
+import querylist from 'components/Common/QueryList'
+import xmsb from './xmform'
+import UploadExcel from 'components/Common/UploadExcel'
+// 方法
+import {
+  saveExcelData,
+  turnXDXM,
+  exportJHExcelData
+} from 'api/xmgl/xdjh/index.js'
+import { GetAllXM } from 'api/common/xm'
+import msg from 'utils/loadmsg'
+import { validData } from 'utils/index'
+import { isEmptyObjecct } from 'utils/validate' // GNM
+import { mapGetters } from 'vuex'
+
+export default {
+  name: 'xmlx',
+  components: {
+    UploadExcel,
+    xmsb,
+    querylist
+  },
+  computed: {
+    ...mapGetters(['listquery', 'rightHeight'])
+  },
+  watch: {
+    // 因created中，会引发重复查询，所以以XMTYP进行单独监控
+    // 通过配置isTypeQuery的值，防止重复查询
+    // 注意，此监听必须放到listquery监听前面，让此监听先执行
+    'listquery.XMTYPE': function(val) {
+      this.isTypeQuery = true
+    },
+    listquery: {
+      handler: function(obj, oldVal) {
+        if (!isEmptyObjecct(obj, 'MODULEID,XMTYPE') && !this.isTypeQuery) {
+          // GNM
+          this.Dyear = obj.JHND
+          this.getsyjh()
+          this.getXMLXData()
+        }
+      },
+      deep: true
+    },
+    rightHeight(val) {
+      this.tableHeight = val - 90
+    }
+  },
+  data() {
+    return {
+      selectRows: [],
+      tableHeight: 600,
+      loadingtext: '导入数据中,请稍后',
+      loading2: false,
+      loadingtb: false,
+      syjh: [], // 使用计划
+      tableData: [], // 页面table数据
+      FormtableData: [], // 表单table数据
+      editRowData: {}, // 编辑行数据
+      dialogVisible: false,
+      dialogFormVisible: false,
+      isTypeQuery: false // 用来判别是否XMTYPE因发监听
+    }
+  },
+  created() {
+    this.listquery.XMTYPE = '0' // 新立
+    if (!isEmptyObjecct(this.listquery, 'MODULEID,XMTYPE')) {
+      // GNM 当前已配置过条件，则查询
+      this.getsyjh()
+      this.getXMLXData()
+    }
+  },
+  mounted() {
+    this.tableHeight = this.rightHeight - 90 // GNM
+    // GNM 添加简单的功能说明
+    this.$store.dispatch(
+      'SetHelpContent',
+      `
+    <span style="font-size:14px;font-weight:bold">功能说明：</span><br/>
+    <span>&nbsp;&nbsp;1、双击一行，在弹出的窗口进行编辑</span><br/>
+    <span>&nbsp;&nbsp;2、导入Excel时，请下载相应的模板后再导入</span><br/>
+    <span>&nbsp;&nbsp;3、鼠标放到单元格时，会显示详细内容</span><br/>
+    <span>&nbsp;&nbsp;4、可以选择一个或多个项目下达到承担单位</span>
+    `
+    )
+  },
+  destroyed() {
+    this.$store.dispatch('SetHelpContent', '')
+  },
+  methods: {
+    // 事件调用
+    getXMInfo() {
+      this.dialogVisible = false
+      this.getXMLXData()
+    },
+    // 项目下达
+    xmXD() {
+      var _this = this
+      if (this.selectRows.length == 0) {
+        msg.showwarning('未选择项目，请先勾选项目')
+        return false
+      }
+      this.$confirm(
+        `你确定要将这${this.selectRows.length}个项目下达到各单位吗？`,
+        '删除提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).then(() => {
+        // 下达数据
+        msg.showloading('正在下达,请稍后...')
+        turnXDXM(_this.selectRows).then(response => {
+          if (response.data.status == 200) {
+            msg.showsuccess('下达成功')
+            this.getXMLXData()
+          } else {
+            msg.showwarning(response.data.msg)
+          }
+        })
+      })
+    },
+    // check行事件
+    selectRow(selection, row) {
+      this.selectRows = selection
+    },
+    // check所有行事件
+    selectallRow(selection) {
+      this.selectRows = selection
+    },
+    // 新立项目
+    newXM() {
+      this.dialogVisible = true
+      this.$nextTick(() => {
+        this.$refs.childform.newXMXX()
+      })
+    },
+    // 双击编辑
+    rowdblclick(row, event) {
+      // 触发子组件方法 删除添加的节点
+      this.dialogVisible = true
+      this.$nextTick(() => {
+        this.$refs.childform.getXMXX(row)
+      })
+    },
+    loadingexcel(res) {
+      this.loading2 = res
+      this.loadingtext = '导入数据中,请稍后'
+    },
+    // 导入数据保存入库
+    submitForm() {
+      if (this.FormtableData.length == 0) {
+        msg.showwarning('请先导入数据,再进行保存')
+        return false
+      }
+      const diff = validData(this.FormtableData)
+      if (diff.length > 0) {
+        msg.showwarning('课题编号[' + diff + ']存在重复请先处理再导入')
+        return false
+      }
+
+      this.loading2 = true
+      this.loadingtext = '保存数据中,请稍后'
+      saveExcelData(this.FormtableData).then(response => {
+        this.dialogFormVisible = false
+        // 查询当前年度的立项数据
+        this.getXMLXData()
+      })
+    },
+    // 获取年度立项数据
+    getXMLXData() {
+      this.loadingtb = true
+      GetAllXM(this.listquery).then(response => {
+        this.tableData = response.data
+        this.loading2 = false
+        this.loadingtb = false
+      })
+    },
+    // 设置3项年度
+    getsyjh() {
+      var dyear = this.Dyear
+      this.syjh = []
+      for (var i = 0; i < 2; i++) {
+        this.syjh.push({ name: parseInt(dyear) + i + '年', id: i + 1 })
+      }
+    },
+    getExcelData(data) {
+      this.FormtableData = data
+    },
+    excelYear(year) {
+      this.Dyear = year
+    },
+    // 导出窗口
+    exportXls() {
+      if (this.tableData.length == 0) {
+        msg.showwarning('请先查询有效数据,再进行导出')
+        return false
+      }
+      // 导出Excel
+      exportJHExcelData(this.listquery).then(response => {
+        var title = response.data
+        location.href =
+          process.env.BASE_API +
+          'api/ExcelOP/GetFileXls?title=' +
+          encodeURI(title)
+      })
+    },
+    // 导入窗口
+    importdata() {
+      this.dialogFormVisible = true
+    }
+  }
+}
+</script>
+<style>
+.is-light {
+  max-width: 90%;
+}
+</style>
+
+<style scoped>
+.xmtj {
+  margin-right: 5px;
+}
+.headtitle {
+  text-align: center;
+  line-height: 30px;
+}
+</style>

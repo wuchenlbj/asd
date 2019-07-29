@@ -1,0 +1,217 @@
+<!--项目计划-公司下文-->
+<template>
+  <div class="xmtj">
+    <querylist showExport :tb-obj="tbobj"></querylist>
+    <!-- <exxls :tb-obj="tbobj" class="exxls" style=""></exxls> -->
+    <div class="xmtj2" style="width:100%;matgin-top:50px;">
+      <h2 class="headtitle">陕西延长石油（集团）有限责任公司{{Dyear}}年度科技投资计划新立项目明细表</h2>
+      <el-table highlight-current-row ref="tbtst1" v-loading="loadingtb" :data="tableData" border tooltip-effect="light" style="width: 100%;" header-row-class-name="headclass">
+        <el-table-column fixed label="序号" align='center'>
+          <el-table-column label="总" width="50" prop="XMXHZ"></el-table-column>
+          <el-table-column label="分" width="50" prop="XMXHF"></el-table-column>
+        </el-table-column>
+        <el-table-column fixed label="项目编号" width="120" prop="XMBH"> </el-table-column>
+        <el-table-column fixed label="项目名称" show-overflow-tooltip width="120" prop="XMMC"> </el-table-column>
+        <el-table-column fixed label="课题编号" show-overflow-tooltip width="120" prop="KTBH"></el-table-column>
+        <el-table-column fixed label="课题名称" show-overflow-tooltip width="120" prop="KTMC"></el-table-column>
+        <el-table-column label="承担单位" width="120" prop="FZDWDMMC"></el-table-column>
+        <el-table-column label="项目负责人" width="120" prop="XMFZR"></el-table-column>
+        <el-table-column label="起止时间(年月)" width="150">
+          <template slot-scope="scope">
+            <span>{{ scope.row.JHQSSJ|parseTime3('yyyy.MM') }}-{{ scope.row.JHZZSJ|parseTime3('yyyy.MM') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="费用明细(万元)" align='center'>
+          <el-table-column label="总费用" width="80" prop="ZFY" align="right"></el-table-column>
+          <el-table-column label="使用计划" align='center'>
+            <el-table-column v-for="(item,index) in syjh" align="right" :key="index" v-bind:label="item.name" v-bind:prop="'SYJH'+item.id" show-overflow-tooltip width="90"></el-table-column>
+          </el-table-column>
+        </el-table-column>
+        <el-table-column label="项目级别" prop="XMJBDMMC" width="120"></el-table-column>
+        <el-table-column label="资金来源" prop="ZJLYMC"></el-table-column>
+        <el-table-column label="项目批次" prop="XMPCDMMC"></el-table-column>
+        <el-table-column label="备注" prop="BZ"></el-table-column>
+      </el-table>
+
+      <h2 class="headtitle">陕西延长石油（集团）有限责任公司{{Dyear}}年度科技投资计划接转项目明细表</h2>
+      <el-table highlight-current-row ref="tbtst2" :data="tableData2" border tooltip-effect="light" style="width: 100%" header-row-class-name="headclass">
+        <el-table-column fixed label="序号" align='center'>
+          <el-table-column label="总" width="50" prop="XMXHZ"></el-table-column>
+          <el-table-column label="分" width="50" prop="XMXHF"></el-table-column>
+        </el-table-column>
+        <el-table-column fixed label="项目编号" show-overflow-tooltip width="120" prop="XMBH"> </el-table-column>
+        <el-table-column fixed label="项目名称" show-overflow-tooltip width="120" prop="XMMC"> </el-table-column>
+        <el-table-column fixed label="课题编号" show-overflow-tooltip width="120" prop="KTBH"></el-table-column>
+        <el-table-column fixed label="课题名称" show-overflow-tooltip width="120" prop="KTMC"></el-table-column>
+        <el-table-column label="承担单位" width="120" prop="FZDWDMMC"></el-table-column>
+        <el-table-column label="项目负责人" width="120" prop="XMFZR"></el-table-column>
+        <el-table-column label="起止时间(年月)" width="150">
+          <template slot-scope="scope">
+            <span>{{ scope.row.JHQSSJ|parseTime3('yyyy.MM') }}-{{ scope.row.JHZZSJ|parseTime3('yyyy.MM') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="费用明细(万元)" align='center'>
+          <el-table-column label="总费用" width="80" prop="ZFY" align="right"></el-table-column>
+          <el-table-column label="使用计划" align='center'>
+            <el-table-column v-for="(item,index) in syjh" align="right" :key="index" v-bind:label="item.name" v-bind:prop="'SYJH'+item.id" show-overflow-tooltip width="90"></el-table-column>
+          </el-table-column>
+        </el-table-column>
+        <el-table-column label="项目级别" prop="XMJBDMMC" width="120"></el-table-column>
+        <el-table-column label="资金来源" prop="ZJLYMC"></el-table-column>
+        <el-table-column label="项目批次" prop="XMPCDMMC"></el-table-column>
+        <el-table-column label="备注" prop="BZ"></el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
+<script>
+import { getXmXLData } from 'api/xmgl/xdjh/index.js'
+import msg from 'utils/loadmsg'
+import querylist from 'components/Common/QueryList'
+import { mapGetters } from 'vuex'
+import { getcurYear } from 'utils/index'
+import { isEmptyObjecct } from 'utils/validate' // GNM
+import exxls from 'common/xlsx/tabletoexcel'
+
+export default {
+  name: 'gsxw',
+  components: {
+    querylist,
+    exxls
+  },
+  computed: {
+    ...mapGetters(['listquery', 'rightHeight'])
+  },
+  data() {
+    return {
+      tbobj: {},
+      pageheight: 800,
+      loadingtb: false,
+      syjh: [], // 使用计划
+      tableData: [], // 页面table数据
+      tableData2: [],
+      Dyear: '',
+      isTypeQuery: false // 用来判别是否XMTYPE因发监听
+    }
+  },
+  watch: {
+    // 因created中，会引发重复查询，所以以XMTYP进行单独监控
+    // 通过配置isTypeQuery的值，防止重复查询
+    // 注意，此监听必须放到listquery监听前面，让此监听先执行
+    'listquery.XMTYPE': function(val) {
+      this.isTypeQuery = true
+    },
+    listquery: {
+      handler(newValue, oldValue) {
+        if (!isEmptyObjecct(newValue, 'MODULEID,XMTYPE') && !this.isTypeQuery) {
+          // GNM
+          this.Dyear = this.listquery.JHND
+          this.getsyjh()
+          this.getXMLXData()
+        }
+      },
+      deep: true
+    },
+    rightHeight(val) {
+      this.tableHeight = val - 70
+    }
+  },
+  created() {
+    if (!isEmptyObjecct(this.listquery, 'MODULEID,XMTYPE')) {
+      // GNM 当前已配置过条件，则查询
+      this.getsyjh()
+      this.getXMLXData()
+    }
+  },
+  mounted() {
+    this.pageheight = this.rightHeight - 70 // GNM
+    this.Dyear = getcurYear()
+    this.getsyjh()
+
+    // this.getXMLXData()
+
+    this.tbobj = {
+      fileName: '公司下文',
+      expTables: [
+        {
+          tableObj: this.$refs.tbtst1,
+          tbTitle:
+            '陕西延长石油（集团）有限责任公司年度科技投资计划新立项目明细表 ',
+          headerNum: '3',
+          sheetName: '新立'
+        },
+        {
+          tableObj: this.$refs.tbtst2,
+          tbTitle:
+            '陕西延长石油（集团）有限责任公司年度科技投资计划接转项目明细表',
+          headerNum: '3',
+          sheetName: '接转'
+        }
+      ]
+    }
+  },
+  methods: {
+    getXMLXData() {
+      var qry = JSON.parse(JSON.stringify(this.listquery))
+      this.getXMLXData1(qry)
+      this.getXMLXData2(qry)
+    },
+    // 获取年度立项数据
+    getXMLXData1(qry) {
+      this.loadingtb = true
+      getXmXLData(qry).then(response => {
+        this.tableData = response.data
+        this.loadingtb = false
+      })
+    },
+    // 接转数据
+    getXMLXData2(qry) {
+      this.listquery.XMTYPE = '1' // 新立
+      this.loadingtb = true
+      getXmXLData(qry).then(response => {
+        this.tableData2 = response.data
+      })
+    },
+    getsyjh() {
+      var dyear = this.Dyear
+      this.syjh = []
+      for (var i = 0; i < 2; i++) {
+        this.syjh.push({ name: parseInt(dyear) + i + '年', id: i + 1 })
+      }
+    },
+    changeyear(val) {
+      this.Dyear = '' + val
+      this.getsyjh()
+      // 查询年度数据
+      this.getXMLXData()
+      this.getXMLXData2()
+    }
+  }
+}
+</script>
+<style  rel="stylesheet/scss" lang="scss" >
+.is-light {
+  max-width: 90%;
+}
+.xmtj2 {
+  overflow: auto;
+  .el-table__body-wrapper {
+    overflow-y: hidden;
+  }
+}
+</style>
+
+<style scoped>
+.xmtj {
+  margin-right: 5px;
+  position: relative;
+  overflow: hidden;
+}
+.xmtj2 {
+  overflow: auto;
+}
+.headtitle {
+  text-align: center;
+  line-height: 30px;
+}
+</style>

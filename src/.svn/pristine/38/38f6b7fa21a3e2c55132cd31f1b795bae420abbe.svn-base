@@ -1,0 +1,99 @@
+<template>
+  <div class="navcontent">
+    <el-row>
+      <el-col :span="4">
+        <el-menu default-active=1 class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose" unique-opened=true theme="dark">
+          <el-submenu v-if="item.children.length>0" v-for="(item, index) in navdata" :key="index" :index="{index}">
+            <template slot="title">
+              <i class="fa fa-home fa-lg"></i>&nbsp;{{item.name}}</template>
+
+            <el-menu-item-group v-for="(child, index) in item.children" :key="index">
+              <el-menu-item :index="{index}">
+                <i class="fa fa-folder "></i>&nbsp;{{child.name}}</el-menu-item>
+            </el-menu-item-group>
+          </el-submenu>
+          <el-menu-item v-else :index="{index}">
+            <i class="fa fa-home fa-lg"></i>&nbsp;{{item.name}}</el-menu-item>
+        </el-menu>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+<script >
+//导入ui组件
+import Vue from 'vue'
+import ElementUI from 'element-ui'
+Vue.use(ElementUI)
+
+export default {
+  data() {
+    return {
+      id: '2',
+      //左侧导航数据
+      navdata: [
+        {
+          name: '项目管理',
+          children: [{ name: '项目添加' }, { name: '项目下达' }]
+        },
+        {
+          name: '实施管理',
+          children: [
+            { name: '组织实施' },
+            { name: '进度管理' },
+            { name: '文档管理' }
+          ]
+        },
+        {
+          name: '经费管理',
+          children: [
+            { name: '经费查询' },
+            { name: '账户管理' },
+            { name: '结算付款' }
+          ]
+        },
+        {
+          name: '评奖管理',
+          children: [{ name: '获奖查询' }, { name: '奖励维护' }]
+        },
+        {
+          name: '科协交流',
+          children: []
+        },
+        {
+          name: '综合查询',
+          children: []
+        }
+      ],
+      cardcolors: [
+        '#0E7FB7',
+        '#B9D51F',
+        '#F2685A',
+        '#FFC001',
+        '#2F5597',
+        '#7030A0'
+      ]
+    }
+  },
+  mounted: function() {
+    this.id = this.$route.params.id
+    this.initData(this.navdata)
+  },
+  methods: {
+    initData: function(data) {
+      for (var p in data) {
+      }
+    },
+    handleOpen(key, keyPath) {
+      //console.log(key, keyPath);
+    },
+    handleClose(key, keyPath) {
+      //console.log(key, keyPath);
+    }
+  }
+}
+</script>
+<style scoped>
+.navcontent {
+  width: 100%;
+}
+</style>

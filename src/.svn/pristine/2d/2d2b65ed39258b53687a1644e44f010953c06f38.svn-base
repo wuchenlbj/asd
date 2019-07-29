@@ -1,0 +1,237 @@
+<!-- 评委管理 -->
+<template>
+	<div class="list">
+    <el-steps :active="activetab" finish-status="success" simple style="margin-bottom: 5px">
+      <el-step title="1.选择项目" ></el-step>
+      <el-step title="2.抽取评委" ></el-step>
+      <el-step title="3.配置保存" ></el-step>
+    </el-steps>
+    <!-- 步骤一 -->
+    <div v-if="activetab==1">
+        <el-alert v-show="!xmxxSelectRow||xmxxSelectRow.length==0 " title="请选择项目(勾选)"  show-icon type="warning"></el-alert>
+
+        <el-table size='mini' :max-height="tableHeight" ref="psxm" border :data="xmxxSelect" style="width: 100%;margin:5px 0;" >
+          <el-table-column type="index" label="序号"  width="50"></el-table-column>
+          <el-table-column prop="XMBH" label="项目编号" width="120"></el-table-column>
+          <el-table-column prop="XMMC" label="项目名称" min-width="120"></el-table-column>
+          <el-table-column prop="KTBH"  label="课题编号" width="140"></el-table-column>
+          <el-table-column prop="KTMC" label="课题名称"  min-width="120"></el-table-column>
+        </el-table>
+          <el-button type="primary" @click="nextStep(1)" plain>下一步</el-button>
+            <el-tooltip class="item" effect="dark" content="已配置过专家信息" placement="bottom">
+              <el-button type="info"  @click="nextStep(4)" plain>直接配置</el-button>
+            </el-tooltip>
+    </div>
+
+    <!-- 步骤二内容 -->
+     <template v-else-if="activetab==2">
+
+        <el-radio-group @change="changeradio" v-model="grouptype" >
+          <el-radio-button name='1' label="1">按专业随机抽取</el-radio-button>
+          <el-radio-button name='2' label="2">随机所有专家</el-radio-button>
+          <el-radio-button name='3' label="3">指定专家</el-radio-button>
+        </el-radio-group>
+        <div v-if="grouptype==1||grouptype==2" >
+            <el-select v-if="grouptype==1" v-model="tj.zydm" style="width: 130px;" placeholder="选择专业查询">
+              <el-option v-for="(item,index) in opts_zy" :key="index" :label="item.NAME" :value="item.NAME">
+              </el-option>
+            </el-select>
+            <el-tooltip class="item" effect="dark" content="选择抽取的专家人数" placement="bottom">
+              <el-input-number v-model="tj.num"  controls-position="right"  :min="1" :max="10"></el-input-number>
+            </el-tooltip>
+            <el-button type="primary" @click="getrRanPW" :loading="loadingpw" plain >1.抽取评委</el-button>
+        </div>
+        <div v-if="grouptype==3">
+          <el-input v-model="tj.name" style="width:130px;" placeholder="请输入评委姓名"></el-input>
+          <el-button type="primary" @click="getrRanPW" :loading="loadingpw" plain >1.查询</el-button>
+        </div>
+        <el-table border :data="listdata" :max-height="tableHeight - 60" ref="tablezj" v-loading='loading'  @select='selectRow'  @select-all='selectallRow'  style="margin:5px 0;">
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column type="index" label="序号"  width="50"></el-table-column>
+          <el-table-column   width="100" prop="NAME"  label="姓名"></el-table-column>
+          <el-table-column min-width="120px" prop="DWDMMC"  label="单位名称"></el-table-column>
+          <el-table-column min-width="80px"  prop="POST"    label="职务"></el-table-column>
+          <el-table-column min-width="80px"   prop="XL"   label="学历学位"></el-table-column>
+          <el-table-column min-width="80px"  prop="ZC"    label="职称"></el-table-column>
+          <el-table-column min-width="80px"  prop="ZY"    label="专业"></el-table-column>
+          <el-table-column min-width="90px"  prop="TEL"    label="联系方式"></el-table-column>
+        </el-table>
+        <el-button type="primary" @click="nextStep(2)" plain>下一步</el-button>
+    </template>
+     <!-- 步骤三内容 -->
+    <div v-if="activetab==3">
+      <el-form ref="form" :model="form" label-width="90px">
+        <el-form-item label="计划日期:">
+           <el-date-picker v-model="form.PSSJ" value-format="yyyy-MM-dd" type="date" placeholder="选择日期"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="评审阶段:">
+          <el-radio-group v-model="form.PSFS">
+            <el-radio  v-for="(item,index) in opts_psfs" :key="index" :label="item.ID" >{{item.NAME}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input type="textarea" v-model="form.BZ"></el-input>
+        </el-form-item>
+         <el-form-item>
+          <el-button type="primary" @click="save()" :loading="loadingbtn" >保存该阶段</el-button>
+          <el-button type="primary" @click="nextStep(-1)" plain>返回项目选择</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+	 </div>
+	</template>
+
+<script>
+import { getZY, getPsfs, savePSData } from "api/kxgzgl/pwgl.js"
+import { getZJData } from "api/kxgzgl/kjrc.js"
+import { mapGetters } from 'vuex';
+import msg from 'utils/loadmsg'
+export default {
+  name: "pwgl",
+  computed: {
+    ...mapGetters(['xmxxSelectRow','rightHeight'])
+  },
+  data() {
+    return {
+      loading: false,
+      loadingpw: false,
+      tableHeight: '500', // GNM 添加高度控制
+      loadingbtn: false,
+      form: {
+        BH: [], // 项目、课题编号
+        PWDMS: [],
+        PSSJ: '',
+        PSFS: '1',
+        BZ: ''
+      },
+      listdata: [],
+      opts_psfs: [], // 评审方式
+      xmxxSelect: [], // 选择的项目
+      selectionRow: [],// 选择的专家
+      activetab: 1,
+      grouptype: '1',
+      tj: {
+        zydm: '', num: 5, name: ''
+      },
+      opts_zy: [] // 专业附录
+    }
+  },
+  watch: {
+    xmxxSelectRow: function (row) {
+
+      this.xmxxSelect = row
+    },
+    rightHeight(val) {
+      this.tableHeight = parseInt(val * 0.28)
+    }
+  },
+  methods: {
+    // 抽取评委
+    getrRanPW() {
+      this.loadingpw = true
+      this.loading = true
+      if (this.grouptype == 3) { // name查找评委
+        this.getKJRCXX({ zydm: '', num: 0, name: this.tj.name })
+      } else {
+        this.getKJRCXX(this.tj)
+      }
+    },
+    // check行事件
+    selectRow(selection, row) {
+      this.selectionRow = selection
+    },
+    // check所有行事件
+    selectallRow(selection) {
+      this.selectionRow = selection
+    },
+    // 获取科技人才专家
+    getKJRCXX(parm) {
+      var _this = this
+      getZJData(parm).then(response => {
+        this.listdata = response.data;
+        this.loadingpw = false
+        this.loading = false
+      }).catch(() => {
+        this.loadingpw = false
+        this.loading = false
+      })
+
+    },
+    // 下一步
+    nextStep(index) {
+      if (index == -1) {
+        this.activetab = 1
+        return false
+      }
+      if (index == 1 || index == 4) {
+        if (this.xmxxSelect.length == 0) {
+          msg.showwarning('请先选择项目')
+          return false
+        }
+      }
+      if (index == 2) {
+        if (this.selectionRow.length == 0) {
+          msg.showwarning('请先选择抽取的专家')
+          return false
+        }
+      }
+      if (index == 4) {
+        this.activetab = 3
+      } else
+        this.activetab++
+    },
+    changeradio(val) {
+      if (val == '2') {
+        this.tj.zydm = ''
+      }
+    },
+    // 评审方式
+    getPSFS() {
+      getPsfs().then(response => {
+        this.opts_psfs = response.data
+      })
+    },
+    // 获取项目批次
+    getFlZY() {
+      getZY().then(response => {
+        this.opts_zy = response.data
+      })
+    },
+    // 保存配置
+    save() {
+      var _this = this
+      this.form.BH = []
+      this.form.PWDMS = []
+      if (!this.form.PSSJ) {
+        msg.showwarning('请输入计划时间')
+        return false
+      }
+      this.loadingbtn = true
+      for (var i = 0; i < this.xmxxSelect.length; i++) {
+        var arr = this.xmxxSelect[i]
+        this.form.BH.push({ 'XMBH': arr.XMBH, KTBH: arr.KTBH });
+      }
+
+      for (var j = 0; j < this.selectionRow.length; j++) {
+        var arr2 = this.selectionRow[j]
+        this.form.PWDMS.push(arr2.ID)
+      }
+
+      savePSData(this.form).then(response => {
+        _this.loadingbtn = false
+        msg.showsuccess('保存数据成功')
+      })
+    }
+  },
+  mounted() {
+    this.tableHeight = parseInt(this.rightHeight * 0.28) // GNM
+    this.getFlZY()
+    this.getPSFS()
+  }
+};
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+.list{
+  padding: 0 20px;
+}
+</style>

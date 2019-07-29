@@ -1,0 +1,251 @@
+<!-- 进度管理  -->
+<template>
+  <div class="jdgl">
+    <div class="filter-container2">
+      <el-date-picker align="right" type="month" value-format="yyyy-MM" @change="changeyear" v-model="Dyear" style="width:110px; float:left;" placeholder="选择年月">
+      </el-date-picker>
+
+      <selectfzdw style="float:left;margin:0 10px;"></selectfzdw>
+
+      <el-tooltip class="item" effect="dark" content="导入的课题必须已经录入合同数据" placement="top">
+        <el-button type="primary" @click="exportdata">导入Excel</el-button>
+      </el-tooltip>
+      <exxls :tb-obj="tbobj" :file-name="pagename" :header-num=2 :tb-title="pagename"></exxls>
+      <!-- <el-button type="primary" @click="exportXls">导出查询Excel</el-button> -->
+    </div>
+
+    <!-- <el-button type="primary">上传进度报表附件</el-button> -->
+
+    <h2 class="headtitle">延长油田股份有限公司科技计划项目月度报表</h2>
+    <el-table ref="tbjdhz" v-loading="loadingtb" :data="tableData" @row-dblclick="rowdblclick" :height="tableHeight" border tooltip-effect="light" style="width: 100%">
+      <el-table-column label="序号" type="index" width="55"></el-table-column>
+      <el-table-column label="项目编号" show-overflow-tooltip width="120" prop="XMBH"> </el-table-column>
+      <el-table-column label="项目名称" show-overflow-tooltip width="120" prop="XMMC"> </el-table-column>
+      <el-table-column label="课题">
+        <el-table-column label="课题编号" show-overflow-tooltip width="150" prop="KTBH"></el-table-column>
+        <el-table-column label="课题名称" show-overflow-tooltip width="120" prop="KTMC"></el-table-column>
+        <el-table-column label="负责人" show-overflow-tooltip width="120" prop="XMFZR"></el-table-column>
+      </el-table-column>
+      <el-table-column label="项目承担单位" show-overflow-tooltip width="120" prop="FZDWDMMC"></el-table-column>
+      <el-table-column label="项目级别" prop="XMJBDMMC" width="120"></el-table-column>
+      <el-table-column label="项目批次" prop="XMPCDMMC"></el-table-column>
+
+      <el-table-column label="投资完成情况(万元)" align='center'>
+        <el-table-column label="计划总投资" width="80" prop="JHZTZ"></el-table-column>
+        <el-table-column label="合同费用" width="80" prop="HTJ"></el-table-column>
+        <el-table-column label="累积完成投资" width="80" prop="LJWCTZ"></el-table-column>
+        <el-table-column label="当年计划投资" width="80" prop="DNJHTZ"></el-table-column>
+        <el-table-column label="当年累计完成投资" width="80" prop="DNLJWCTZ"></el-table-column>
+      </el-table-column>
+
+      <el-table-column label="形象进度" align='center'>
+        <el-table-column label="项目进度(%)" width="80" prop="XMJD"></el-table-column>
+        <el-table-column label="形象进度投资(万元)" width="80" prop="JDTZJE"></el-table-column>
+        <el-table-column label="主要完成工作" show-overflow-tooltip width="280" prop="ZYWCGZ"></el-table-column>
+        <el-table-column label="取得的阶段成果" show-overflow-tooltip width="180" prop="JDCG"></el-table-column>
+      </el-table-column>
+
+      <el-table-column label="存在问题" width="180" show-overflow-tooltip prop="CZWT"></el-table-column>
+      <el-table-column label="下步工作安排" show-overflow-tooltip width="280" prop="XBJH"></el-table-column>
+      <el-table-column label="备注" prop="BZ"></el-table-column>
+    </el-table>
+
+    <!-- 导入Dialog -->
+    <el-dialog v-dialogDrag title="导入Excel" width="1300px" top="2vh" max-height="600" :close-on-click-modal="false" :visible.sync="dialogFormVisible">
+      <div v-loading="loading2" :element-loading-text="loadingtext">
+        <UploadExcel :hideYear="false" :hideYearMonth="true" tableName="KJGLPT_JD_YDBB_1" dataType="0" @loadingexcel="loadingexcel" @excelData="getExcelData" @excelYear="excelYear"></UploadExcel>
+        <el-button style="margin-left:2px;" type="primary" @click="submitForm()">保存</el-button>
+
+        <el-table :data="FormtableData" height="400" border style="width: 100%;margin-top:5px;">
+          <el-table-column label="序号" type="index" width="50"></el-table-column>
+          <el-table-column label="课题编号" width="120" prop="KTBH"></el-table-column>
+
+          <el-table-column label="形象进度" align='center'>
+            <el-table-column label="项目进度(%)" width="100" prop="XMJD"></el-table-column>
+            <el-table-column label="形象进度投资(万元)" width="130" prop="JDTZJE"></el-table-column>
+            <el-table-column label="主要完成工作" min-width="100" prop="ZYWCGZ"></el-table-column>
+            <el-table-column label="取得的阶段成果" min-width="110" prop="JDCG"></el-table-column>
+          </el-table-column>
+
+          <el-table-column label="存在问题" min-width="100" prop="CZWT"></el-table-column>
+          <el-table-column label="下步工作安排" min-width="100" prop="XBJH"></el-table-column>
+          <el-table-column label="备注" width="110" prop="BZ"></el-table-column>
+        </el-table>
+      </div>
+
+    </el-dialog>
+    <!--编辑Dialogxmsb-->
+    <el-dialog v-dialogDrag title="计划资料修改" width="1000px" append-to-body :visible.sync="dialogVisible">
+    </el-dialog>
+  </div>
+</template>
+<script>
+import UploadExcel from '../../../../components/Common/UploadExcel'
+import selectfzdw from 'src/components/XM/fzdw'
+
+import exxls from 'common/xlsx/tabletoexcel' // GNM 更改导出方式
+
+import {
+  saveExcelData,
+  getXmJDData,
+  exportJDBBExcelData
+} from 'api/xmgl/index.js'
+import msg from 'utils/loadmsg'
+import bus from 'src/components/bus'
+import { getcurNY } from 'utils/index'
+
+import { mapGetters } from 'vuex' // GNM
+export default {
+  name: 'xmlx',
+  components: {
+    UploadExcel,
+    selectfzdw,
+    exxls
+  },
+  data() {
+    return {
+      tbobj: {},
+      pagename: '延长油田股份有限公司科技计划项目月度报表',
+      tableHeight: 600,
+      loadingtext: '导入数据中,请稍后',
+      loading2: false,
+      loadingtb: false,
+      syjh: [], // 使用计划
+      tableData: [], // 页面table数据
+      FormtableData: [], // 表单table数据
+      editRowData: {}, // 编辑行数据
+      Dyear: '',
+      FZDW: '',
+      dialogVisible: false,
+      dialogFormVisible: false
+    }
+  },
+  // GNM
+  computed: {
+    ...mapGetters(['rightHeight'])
+  },
+  watch: {
+    rightHeight(val) {
+      this.tableHeight = val - 90
+    }
+  },
+  mounted() {
+    this.tableHeight = this.rightHeight - 90 // GNM
+
+    this.Dyear = '' + getcurNY()
+    var _this = this
+    bus.$on('setFzdw', function(val) {
+      if (val === '30200000') {
+        _this.FZDW = ''
+      } else {
+        _this.FZDW = val
+      }
+
+      _this.getXMLXData()
+    })
+    // 查询年度数据
+    this.getXMLXData()
+
+    this.tbobj = this.$refs.tbjdhz
+  },
+  methods: {
+    // 导出窗口
+    exportXls() {
+      if (this.tableData.length == 0) {
+        msg.showwarning('请先查询有效数据,再进行导出')
+        return false
+      }
+      // 导出Excel
+      exportJDBBExcelData(this.listquery).then(response => {
+        var title = response.data
+        location.href =
+          process.env.BASE_API +
+          'api/ExcelOP/GetFileXls?title=' +
+          encodeURI(title)
+      })
+    },
+    newXM() {
+      this.dialogVisible = true
+      this.$nextTick(() => {
+        this.$refs.childform.newXMXX()
+      })
+    },
+    // 双击编辑
+    rowdblclick(row, event) {
+      // 触发子组件方法 删除添加的节点
+      this.dialogVisible = true
+      this.$nextTick(() => {
+        this.$refs.childform.getXMXX(row)
+      })
+    },
+    loadingexcel(res) {
+      this.loading2 = res
+      this.loadingtext = '导入数据中,请稍后'
+    },
+    // 导入数据保存入库
+    submitForm() {
+      if (this.FormtableData.length == 0) {
+        msg.showwarning('请先导入数据,再进行保存')
+        return false
+      }
+
+      this.loading2 = true
+      this.loadingtext = '保存数据中,请稍后'
+      saveExcelData(this.FormtableData).then(response => {
+        this.dialogFormVisible = false
+        // 查询当前年度的立项数据
+        this.getXMLXData()
+      })
+    },
+    // 获取年月进度数据
+    getXMLXData() {
+      var qry = {
+        ny: this.Dyear,
+        dwdm: this.FZDW
+      }
+      this.loadingtb = true
+      getXmJDData(qry).then(response => {
+        this.tableData = response.data
+        this.loading2 = false
+        this.loadingtb = false
+      })
+    },
+
+    getExcelData(data) {
+      this.FormtableData = data
+    },
+    excelYear(year) {
+      this.Dyear = year
+    },
+    changeyear(val) {
+      this.Dyear = '' + val
+      // 查询年度数据
+      this.getXMLXData()
+    },
+    exportdata() {
+      this.dialogFormVisible = true
+    }
+  }
+}
+</script>
+<style>
+.is-light {
+  max-width: 90%;
+}
+</style>
+
+<style scoped>
+.filter-container2 {
+  display: inline-block;
+  vertical-align: middle;
+  margin-bottom: 5px;
+  /* float: left; */
+}
+.jdgl {
+  margin-right: 5px;
+}
+.headtitle {
+  text-align: center;
+  line-height: 30px;
+}
+</style>

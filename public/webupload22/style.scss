@@ -1,0 +1,142 @@
+
+
+
+
+.info {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  .file-name {
+    position: relative;
+    float: left;
+    overflow: hidden;
+    width: 45%;
+    height: 49px;
+    white-space: nowrap;
+    text-indent: 45px;
+    text-overflow: ellipsis;
+    .name-text {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+  .file-size {
+    float: left;
+    width: 12%;
+    height: 49px;
+    text-indent: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .file-state {
+    position: relative;
+    float: left;
+    width: 18%;
+    height: 49px;
+  }
+  .file-state span i,
+  .file-state span em {
+    font-style: normal
+  }
+  .file-state .success em,
+  .file-state .error em {
+    position: absolute;
+    top: 17px;
+    left: 0;
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
+  .file-state .success em {
+    background: url(./image/operate-sure.png) no-repeat;
+    background-position: center center !important;
+  }
+  .file-time {
+    height: 49px;
+    text-indent: 10px;
+    text-overflow: ellipsis;
+    width: 15%;
+    float: left;
+    overflow: hidden;
+  }
+  .file-time em {
+    font-style: normal;
+  }
+  .file-operate {
+    height: 16px;
+    padding: 17px 0;
+    float: left;
+    width: 10%;
+  }
+  .file-operate em {
+    display: none;
+    float: left;
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+  .file-operate em.operate-pause {
+    background: url(./image/operate-pause.png) no-repeat;
+    background-position: center center !important;
+  }
+  .file-operate em.operate-continue {
+    background: url(./image/operate-continue.png) no-repeat;
+    background-position: center center !important;
+  }
+  .file-operate em.operate-remove {
+    background: url(./image/operate-del.png) no-repeat;
+    background-position: center center !important;
+  }
+}
+
+// eltable图标
+.file-icon {
+  position: absolute;
+  top: 12px;
+  left: 13px;
+  width: 24px;
+  height: 24px;
+}
+
+.filecion {
+  width: 26px;
+  height: 26px;
+  position: absolute;
+  left: 10px;
+  top: 5px;
+}
+
+.dir-small {
+  background: url(../../public/images/Folder.png) center no-repeat;
+}
+
+.dir-zip {
+  background: url(../../public/images/zip.png) center no-repeat;
+}
+
+.dir-pic {
+  background: url(../../public/images/pic.png) center no-repeat;
+}
+
+.dir-exe {
+  background: url(../../public/images/exe.png) center no-repeat;
+}
+
+.dir-other {
+  background: url(../../public/images/misc.png) center no-repeat;
+}
+
+.dir-excel {
+  background: url(../../public/images/excel.png) center no-repeat;
+}
+
+.dir-doc {
+  background: url(../../public/images/word.png) center no-repeat;
+}
+
+.dir-ppt {
+  background: url(../../public/images/ppt.png) center no-repeat;
+}

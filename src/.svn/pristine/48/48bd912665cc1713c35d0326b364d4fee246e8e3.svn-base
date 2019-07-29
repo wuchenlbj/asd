@@ -1,0 +1,284 @@
+<template>
+<!-- 下拉列表展示默认数据或者最新年月数据(如果存在),选择相应年月查询对应的字典列表树展示 可以对当前树进行拖拽保存，保存的就是当前年月的最新数据  -->
+    <div id="areaTree" :height="treeHeight + 'px'">
+        <div class="box-title">
+            <a href="#">单位树
+              <!-- <i class="fa  fa-refresh" @click="freshArea"></i> -->
+              </a>
+        </div>
+        <div class="tree-box" >
+            <div class="zTreeDemoBackground left">
+                <ul id="treeDemo" class="ztree"></ul>
+            </div>
+        </div>
+        <el-dialog :lock-scroll="false" v-dialogDrag title="添加单位" width="20%"  append-to-body  :visible.sync="dialog_creat" >
+           <el-form :model="form" ref="dwform" :rules="rules">
+
+            <el-form-item v-show="showDM"  label="单位代码" label-width='80px' prop="id">
+              <el-input v-model="form.id" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="单位名称" label-width='80px' prop="name">
+              <el-input v-model="form.name" auto-complete="off"></el-input>
+            </el-form-item>
+          </el-form>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="dialog_creat = false">取 消</el-button>
+            <el-button type="primary" @click="addnode('dwform')">确 定</el-button>
+          </span>
+        </el-dialog>
+    </div>
+</template>
+
+<script>
+import { NewGuid } from '@/config/filter';
+export default {
+  name: 'areaTree',
+  components: {},
+  data: function () {
+    return {
+      dialog_creat: false,
+      IfshowDM: true,
+      form: {
+        id: '',
+        pid: '',
+        name: ''
+      },
+      rules: {
+        id: [{ required: true, message: '请输入单位代码', trigger: 'blur' }],
+        name: [{ required: true, message: '请输入单位名称', trigger: 'blur' }]
+      },
+      CurtreeNode: null,
+      className: 'dark',
+      setting: {
+        data: {
+          simpleData: {
+            enable: true,
+            idKey: 'ID',
+            pIdKey: 'PID'
+          },
+          key: {
+            name: 'NAME'
+          }
+        },
+        view: {
+          addHoverDom: this.addHoverDom,
+          removeHoverDom: this.removeHoverDom,
+          selectedMulti: false
+        },
+        edit: {
+          drag: {
+            autoExpandTrigger: true,
+            prev: true,
+            inner: true,
+            next: true
+          },
+          enable: true,
+          removeTitle: '删除该单位',
+          renameTitle: '编辑该单位',
+          showRemoveBtn: this.showRemoveBtn,
+          showRenameBtn: this.showRenameBtn
+        },
+        callback: {
+          beforeRemove: this.beforeRemove,
+          beforeRename: this.beforeRename
+        }
+      },
+      zNodes: []
+    }
+  },
+  props: {
+    // 检测类型 + 其他验证
+    nodeData: {
+      type: Array,
+      default: function () {
+        return []
+      }
+    },
+    ParentTag: { // 区分是哪个父组件
+      type: String,
+      default: ''
+    },
+    showDM: {
+      type: Boolean,
+      default: true
+    },
+    treeHeight:{
+      type:Number,
+      default:300
+    }
+  },
+  watch: {
+    // 检测值改变了则重新渲染树组件
+    nodeData(val) {
+      this.zNodes = val
+      this.initTree()
+    }
+  },
+  methods: {
+    // 渲染树组件
+    initTree() {
+      $.fn.zTree.init($('#treeDemo'), this.setting, this.zNodes)
+    },
+    onExpand: function (event, treeId, treeNode) { },
+    beforeDrag: function (treeId, treeNodes) {
+      this.className = this.className === 'dark' ? '' : 'dark';
+    },
+    // 添加按钮
+    addHoverDom: function (treeId, treeNode) {
+      var _this = this
+      var sObj = $('#' + treeNode.tId + '_span')
+      if (treeNode.editNameFlag || $('#addBtn_' + treeNode.tId).length > 0) { return; }
+      var addStr =
+        "<span class='button add' id='addBtn_" +
+        treeNode.tId +
+        "' title='添加子单位' onfocus='this.blur();'></span> "
+      sObj.after(addStr)
+      var btn = $('#addBtn_' + treeNode.tId)
+      if (btn) {        btn.bind("click", function () {
+          _this.dialog_creat = true;
+          _this.form.id = this.showDM ? "" : NewGuid(); // 显示手填 不显示默认赋值
+          _this.form.name = "";
+          _this.form.pid = treeNode.ID;
+          _this.CurtreeNode = treeNode;
+
+          return false;
+        });      }
+    },
+    // 添加数据
+    addnode: function (formName) {
+      var _this = this
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          var zTree = $.fn.zTree.getZTreeObj('treeDemo')
+          var allnodes = zTree.getNodeByParam('ID', _this.form.id)
+          if (allnodes) {
+            _this.$message({
+              message: '已存在改单位代码，请修改',
+              type: 'warning'
+            })
+            return false
+          } else {
+            var adddata = {
+              ID: _this.form.id,
+              PID: _this.form.pid,
+              NAME: _this.form.name
+            }
+            zTree.addNodes(_this.CurtreeNode, adddata)
+            _this.dialog_creat = false
+            // 保存新单位名称到字典表
+            if (_this.ParentTag === 'fzdw') {
+              this.$emit('adddata', adddata)
+            }
+          }
+        } else {
+          return false
+        }
+      })
+    },
+    // 移除节点
+    delnodeData(id) {
+      var zTree = $.fn.zTree.getZTreeObj('treeDemo')
+      var node = zTree.getNodeByParam('ID', id)
+      zTree.removeNode(node)
+    },
+    // 删除按钮
+    removeHoverDom: function (treeId, treeNode) {
+      $('#addBtn_' + treeNode.tId)
+        .unbind()
+        .remove()
+    },
+    beforeRemove: function (treeId, treeNode) {
+      var zTree = $.fn.zTree.getZTreeObj('treeDemo')
+      zTree.selectNode(treeNode)
+      return confirm('确认删除单位 -- ' + treeNode.NAME + ' 吗？')
+    },
+    beforeRename(treeId, treeNode, newName, isCancel) {
+      var _this = this
+      var zTree = $.fn.zTree.getZTreeObj('treeDemo')
+      zTree.selectNode(treeNode)
+      // return confirm('确认修改单位名称为: -- ' + treeNode.NAME + ' 吗？')
+      var msg = '确认修改单位名称为: -- ' + newName + ' 吗？'
+      this.$confirm(msg, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        // 保存修改记录
+        var adddata = {
+          ID: treeNode.ID,
+          PID: treeNode.PID,
+          NAME: newName
+        }
+        // 保存新单位名称到字典表
+        if (_this.ParentTag === 'fzdw') {
+          this.$emit('editdata', adddata)
+        }
+        return true
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消'
+        })
+        return false
+      })
+    },
+    showRemoveBtn: function (treeId, treeNode) {
+      return !(treeNode.ID === '0')
+    },
+    // 重命名
+    showRenameBtn: function (treeId, treeNode) {
+      return !(treeNode.ID === '0')
+    },
+    // 获取ztree数据
+    getData() {
+      var treeObj = $.fn.zTree.getZTreeObj('treeDemo')
+
+      var nodes = null
+      if (treeObj) {
+        nodes = treeObj.transformToArray(treeObj.getNodes())
+      } else {
+        nodes = []
+      }
+      this.$emit('changedata', nodes)
+    }
+  },
+  mounted() { }
+}
+</script>
+<style>
+@import "../../../static/zTree/css/zTreeStyle.css";
+#treeDemo li.dark {
+  background-color: #e3e3e3;
+}
+#areaTree {
+  border: 1px solid #e5e5e5;
+  margin-top: 10px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  width: 400px;
+  overflow: auto;
+}
+.box-title {
+  border-radius: 3px 3px 0 0;
+  background-color: #f5f5f5;
+}
+.box-title a {
+  color: #2fa4e7;
+  text-decoration: none;
+  font-size: 14px;
+  display: block;
+  padding: 8px 15px;
+  cursor: pointer;
+}
+.box-title .fa {
+  float: right;
+  line-height: 20px;
+}
+.ztree li span.button.add {
+  margin-left: 2px;
+  margin-right: 2px;
+  background-position: -144px 0;
+  vertical-align: top;
+  *vertical-align: middle;
+}
+</style>

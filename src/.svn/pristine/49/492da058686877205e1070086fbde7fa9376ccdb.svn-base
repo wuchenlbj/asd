@@ -1,0 +1,277 @@
+<!--立项申报-->
+<template>
+  <div class="xmtj" style="height:100%;overflow-y:hidden;">
+
+    <div class="filter-container" style="width:100%;">
+      <el-button-group>
+        <el-button size="mini" class="filter-item" type="primary" @click="exportdata">导入Excel</el-button>
+        <el-button size="mini" class="filter-item" type="primary" @click="addLX">添加立项</el-button>
+        <el-button size="mini" class="filter-item" type="primary" @click="excelLX">导出Excel</el-button>
+      </el-button-group>
+
+      <querylist @on-query="QueryListSearch"></querylist>
+    </div>
+
+    <div class="headtitle">陕西延长石油（集团）有限责任公司{{Dyear}}年度科技投资计划新立项目明细表</div>
+    <el-table v-loading="loadingtb" :data="tableData" :height="tableHeight" @row-dblclick="rowdblclick" border tooltip-effect="light" style="width: 100%">
+      <el-table-column fixed label="序号" align='center'>
+        <el-table-column label="总" width="50" prop="XMXHZ"></el-table-column>
+        <el-table-column label="分" width="50" prop="XMXHF"></el-table-column>
+      </el-table-column>
+      <el-table-column fixed label="项目名称" show-overflow-tooltip width="120" prop="XMMC"> </el-table-column>
+      <el-table-column fixed label="课题编号" show-overflow-tooltip width="120" prop="KTBH"></el-table-column>
+      <el-table-column fixed label="课题名称" show-overflow-tooltip width="120" prop="KTMC"></el-table-column>
+      <el-table-column label="立项依据及主要研究内容" width="180" show-overflow-tooltip prop="YJNR"></el-table-column>
+      <el-table-column label="主要技术经济指标及成果提交方式" show-overflow-tooltip width="250" prop="JJZB"></el-table-column>
+      <el-table-column label="负责单位" width="120" prop="FZDWDMMC"></el-table-column>
+      <el-table-column label="参加单位" width="120" prop="CJDWDMMC"></el-table-column>
+      <el-table-column label="协作单位" width="120" prop="XZDWDMMC"></el-table-column>
+      <el-table-column label="项目负责人" width="120" prop="XMFZR"></el-table-column>
+      <el-table-column label="参加人员" show-overflow-tooltip width="120" prop="CJRY"></el-table-column>
+      <el-table-column label="起止时间(年月)" width="150">
+        <template slot-scope="scope">
+          <span>{{ scope.row.JHQSSJ|parseTime3('yyyy.MM') }}-{{ scope.row.JHZZSJ|parseTime3('yyyy.MM') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="费用明细(万元)" align='center'>
+        <el-table-column label="总费用" width="80" prop="ZFY"></el-table-column>
+        <el-table-column label="使用计划" align='center'>
+          <el-table-column v-for="(item,index) in syjh" :key="index" v-bind:label="item.name" v-bind:prop="'FY'+item.id" show-overflow-tooltip width="90"></el-table-column>
+        </el-table-column>
+      </el-table-column>
+      <el-table-column label="项目级别" prop="XMJBDMMC" width="120"></el-table-column>
+      <el-table-column label="资金来源" prop="ZJLYMC"></el-table-column>
+      <el-table-column label="项目批次" prop="XMPCMC"></el-table-column>
+      <el-table-column label="备注" prop="BZ"></el-table-column>
+    </el-table>
+
+    <!-- 导入Dialog -->
+    <el-dialog v-dialogDrag title="导入Excel" width="1300px" top="2vh" :close-on-click-modal="false" :visible.sync="dialogFormVisible">
+      <div v-loading="loading2" :element-loading-text="loadingtext">
+        <UploadExcel :hideYear="true" tableName="KJGLPT_XMLXJBXX" @loadingexcel="loadingexcel" @excelData="getExcelData" @excelYear="excelYear"></UploadExcel>
+        <el-button style="margin-left:2px;" type="primary" @click="submitForm()">保存</el-button>
+        <el-table :data="FormtableData" height="470" border style="width: 100%;margin-top:5px;">
+          <el-table-column fixed label="序号" align='center'>
+            <el-table-column label="总" width="50" prop="XMXHZ"></el-table-column>
+            <el-table-column label="分" width="50" prop="XMXHF"></el-table-column>
+          </el-table-column>
+          <el-table-column fixed label="项目名称" width="120" prop="XMMC"> </el-table-column>
+          <el-table-column fixed label="课题编号" width="120" prop="KTBH"></el-table-column>
+          <el-table-column fixed label="课题名称" width="120" prop="KTMC"></el-table-column>
+          <el-table-column label="立项依据及主要研究内容" width="180" show-overflow-tooltip prop="YJNR"></el-table-column>
+          <el-table-column label="达到的主要技术经济指标及成果提交方式" show-overflow-tooltip width="270" prop="JJZB"></el-table-column>
+          <el-table-column label="负责单位" width="120" prop="FZDWDMMC"></el-table-column>
+          <el-table-column label="参加单位" width="120" prop="CJDWDMMC"></el-table-column>
+          <el-table-column label="协作单位" width="120" prop="XZDWDMMC"></el-table-column>
+          <el-table-column label="项目负责人" width="120" prop="XMFZR"></el-table-column>
+          <el-table-column label="参加人员" width="120" prop="CJRY"></el-table-column>
+          <el-table-column label="起止时间(年月)" width="150">
+            <template slot-scope="scope">
+              <span>{{ scope.row.JHQSSJ|parseTime3('yyyy.MM') }}-{{ scope.row.JHZZSJ|parseTime3('yyyy.MM') }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="费用明细(万元)" align='center'>
+            <el-table-column label="总费用" width="80" prop="ZFY"></el-table-column>
+            <el-table-column label="使用计划" align='center'>
+              <el-table-column v-for="(item,index) in syjh" :key="index" v-bind:label="item.name" v-bind:prop="'FY'+item.id" show-overflow-tooltip width="90"></el-table-column>
+            </el-table-column>
+          </el-table-column>
+          <el-table-column label="项目级别" prop="XMJBDMMC" width="120"></el-table-column>
+          <el-table-column label="项目批次" prop="XMPCMC"></el-table-column>
+          <el-table-column label="资金来源" prop="ZJLYMC"></el-table-column>
+          <el-table-column label="备注" prop="BZ"></el-table-column>
+        </el-table>
+      </div>
+
+    </el-dialog>
+    <!--编辑Dialogxmsb-->
+    <el-dialog v-dialogDrag title="立项资料修改" width="1000px" top="2vh" append-to-body :close-on-click-modal="false" :visible.sync="dialogVisible">
+      <formxmsb @getXMInfo="QueryListSearch" ref="childform"></formxmsb>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import querylist from 'components/Common/QueryList'
+import formxmsb from './form_xmsb'
+import UploadExcel from 'components/Common/UploadExcel'
+import {
+  saveExcelData,
+  getXmlxData,
+  exportExcelData,
+  GetExcelData
+} from 'api/xmlx/index.js'
+import msg from 'utils/loadmsg'
+
+import { isEmptyObjecct } from 'utils/validate' // GNM
+import bus from 'components/bus'
+import { validData } from 'utils/index'
+import { mapGetters } from 'vuex'
+
+export default {
+  name: 'xmlx',
+  components: {
+    UploadExcel,
+    formxmsb,
+    querylist
+  },
+  data() {
+    return {
+      tableHeight: 600,
+      loadingtext: '导入数据中,请稍后',
+      loading2: false,
+      loadingtb: false,
+      syjh: [], // 使用计划
+      tableData: [], // 页面table数据
+      FormtableData: [], // 表单table数据
+      editRowData: {}, // 编辑行数据
+      Dyear: '',
+      dialogVisible: false,
+      dialogFormVisible: false
+    }
+  },
+  computed: {
+    ...mapGetters(['listquery', 'rightHeight'])
+  },
+  watch: {
+    rightHeight(val) {
+      this.tableHeight = val - 90
+    },
+    listquery: {
+      handler: function(obj, oldVal) {
+        if (!isEmptyObjecct(obj, 'MODULEID,XMTYPE')) {
+          // GNM
+          this.Dyear = obj.JHND
+          this.getsyjh()
+          this.getXMLXData()
+        }
+      },
+      deep: true
+    }
+  },
+  created() {
+    if (!isEmptyObjecct(this.listquery, 'MODULEID,XMTYPE')) {
+      this.getXMLXData()
+    }
+  },
+  mounted() {
+    this.tableHeight = this.rightHeight - 90
+
+    // GNM 添加简单的功能说明
+    this.$store.dispatch(
+      'SetHelpContent',
+      `
+    <span style="font-size:14px;font-weight:bold">功能说明：</span><br/>
+    <span>&nbsp;&nbsp;1、双击一行，在弹出的窗口进行编辑</span><br/>
+    <span>&nbsp;&nbsp;2、导入Excel时，请下载相应的模板后再导入</span><br/>
+    <span>&nbsp;&nbsp;3、鼠标放到单元格时，会显示详细内容</span><br/>
+    `
+    )
+  },
+  destroyed() {
+    this.$store.dispatch('SetHelpContent', '')
+  },
+  methods: {
+    // 子组件事件
+    QueryListSearch() {
+      this.getXMLXData()
+    },
+    excelLX2() {
+      GetExcelData().then(response => {})
+    },
+    // 导出excel
+    excelLX() {
+      if (this.tableData.length == 0) {
+        msg.showwarning('请先查询有效数据,再进行导出')
+        return false
+      }
+      // 导出Excel
+      exportExcelData(this.listquery).then(response => {
+        var title = response.data
+        location.href =
+          process.env.BASE_API +
+          'api/ExcelOP/GetFileXls?title=' +
+          encodeURI(title)
+      })
+    },
+    // 双击编辑
+    rowdblclick(row, event) {
+      // 触发子组件方法 删除添加的节点
+      this.dialogVisible = true
+      this.$nextTick(() => {
+        this.$refs.childform.getXMXX(row)
+      })
+    },
+    // 添加立项
+    addLX() {
+      this.dialogVisible = true
+      this.FormtableData = []
+      this.$nextTick(() => {
+        this.$refs.childform.resetForm('ruleForm')
+      })
+    },
+    loadingexcel(res) {
+      this.loading2 = res
+      this.loadingtext = '导入数据中,请稍后'
+    },
+
+    // 导入数据保存入库
+    submitForm() {
+      if (this.FormtableData.length == 0) {
+        msg.showwarning('请先导入数据,再进行保存')
+        return false
+      }
+
+      const diff = validData(this.FormtableData)
+      if (diff.length > 0) {
+        msg.showwarning('课题编号[' + diff + ']存在重复请先处理再导入')
+        return false
+      }
+
+      this.loading2 = true
+      this.loadingtext = '保存数据中,请稍后'
+      saveExcelData(this.FormtableData).then(response => {
+        this.dialogFormVisible = false
+        // 查询当前年度的立项数据
+        this.getXMLXData()
+      })
+    },
+    // 获取年度立项数据
+    getXMLXData() {
+      // 获取store listQuery
+      this.loadingtb = true
+      getXmlxData(this.listquery).then(response => {
+        this.tableData = response.data
+        this.loading2 = false
+        this.loadingtb = false
+      })
+    },
+    getsyjh() {
+      var dyear = this.Dyear
+      this.syjh = []
+      for (var i = 0; i < 3; i++) {
+        this.syjh.push({ name: parseInt(dyear) + i + '年', id: i + 1 })
+      }
+    },
+    getExcelData(data) {
+      this.FormtableData = data
+    },
+    excelYear(year) {
+      this.Dyear = year
+    },
+    exportdata() {
+      this.dialogFormVisible = true
+    }
+  }
+}
+</script>
+<style>
+.is-light {
+  max-width: 90%;
+}
+</style>
+
+<style scoped>
+.xmtj {
+  margin-right: 5px;
+}
+</style>

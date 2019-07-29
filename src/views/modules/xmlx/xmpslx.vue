@@ -1,0 +1,17 @@
+<!-- 项目评审打分 -->
+
+<template>
+	<div class="list">
+      <xmps pslx='1' class="hamburger-container" ></xmps>
+	 </div>
+</template>  
+
+<script>
+import xmps from "src/components/XM/xmps.vue"
+export default {
+  name: "xmpslx",
+  components: {
+    xmps
+  }
+};
+</script>
