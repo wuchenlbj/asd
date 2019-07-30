@@ -22,7 +22,7 @@ Vue.directive('dialogDrag', {
     // closeBtn.children[0].style = 'color:white;'
     // vnode.componentInstance.lockScroll = false
     dragDom.style.marginTop = '15vh'
-    dialogHeaderEl.style = 'padding:15px 40px 10px;cursor:move;border: 1px solid #e2e2e4;background: url("../../../public/images/logo.png") 5px 10px no-repeat;background-size:30px 30px;'
+    dialogHeaderEl.style = 'padding:15px 40px 10px;cursor:move;border: 1px solid #e2e2e4;background: url("../public/images/logo.png") 5px 10px no-repeat;background-size:30px 30px;'
     // dialogHeaderEl.style.backgroundColor = "blue";
     // 获取原有属性 ie dom元素.currentStyle 火狐谷歌 window.getComputedStyle(dom元素, null);
     const sty = dragDom.currentStyle || window.getComputedStyle(dragDom, null)

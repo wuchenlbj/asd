@@ -4,7 +4,8 @@
 
       <div class="loginhead">
         <a id="logo" href="/">
-          <img :src="'../../../public/images/logo.png'">
+          <!-- <img :src="'../../public/images/logo.png'"> -->
+          <img src="../../public/images/logo.png">
           <span>{{title}}</span>
         </a>
       </div>
@@ -66,6 +67,7 @@ export default {
       }
     };
     return {
+      
       loading: false,
       themefg: "1",
       title: "延长油田科技项目管理平台",
