@@ -118,7 +118,7 @@ import { mapGetters } from 'vuex'
 import { getFileLists, savexmToqd } from 'api/xmwdqd/index.js'
 import msg from 'utils/loadmsg'
 import { dropFile, saveFileXMData } from 'api/filelist'
-import bus from 'src/components/bus'
+import bus from '@/components/bus'
 import { NewGuid } from '@/config/filter'
 
 window.MD5 = null

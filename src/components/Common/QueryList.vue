@@ -30,7 +30,7 @@
 import { mapGetters } from 'vuex'
 import { GetUnitTree } from 'api/common/xm.js'
 import { getXmPC, getXmJB } from 'api/xtsz/fzdw.js'
-import treeSelect from '../Common/treeSelect/tree.vue'
+import treeSelect from '@/components/Common/treeSelect/tree.vue'
 import { getcurYear } from 'utils/index'
 import exxls from 'common/xlsx/tabletoexcel' // GNM 添加导出
 export default {

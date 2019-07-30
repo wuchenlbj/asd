@@ -102,7 +102,7 @@ import { getXZDW } from 'api/xtsz/xzdw.js'
 import { mapGetters } from 'vuex';
 import { parseTime } from 'utils/index.js'
 import msg from 'utils/loadmsg'
-import bus from 'src/components/bus'
+import bus from '../../../../components/bus'
 // 立项申报
 export default {
   name: 'xlxmjh',

@@ -44,14 +44,14 @@
 </template>
 <script >
 import Hamburger from './Hamburder'
-import treeSelect from '../Common/treeSelect/tree.vue'
+import treeSelect from '@/components/Common/treeSelect/tree.vue'
 import { mapGetters } from 'vuex'
 import { GetUnitTree, getQDName } from 'api/common/xm.js'
 
-import querylist from 'QueryList'
+import querylist from '@/components/Common/QueryList'
 import { isEmptyObjecct } from 'utils/validate' // GNM
 // import { getXmPC, getXmFL, getXmJB, getXMFLTree } from 'api/xtsz/fzdw.js'
-import bus from 'src/components/bus'
+import bus from '@/components/bus.js'
 export default {
   computed: {
     ...mapGetters(['sidetopbar', 'moduleid', 'xmxx', 'listquery', 'xmxxRow']),

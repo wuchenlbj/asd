@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import zTree from 'src/components/Common/zTree.vue'
+import zTree from '../../../components/Common/zTree.vue'
 import { mapGetters } from 'vuex'
 import {
   getXmJB,

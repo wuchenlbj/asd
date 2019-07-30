@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import countUp from 'common/countUp.vue';
+import countUp from 'countUp';
 export default {
   components: {
     countUp

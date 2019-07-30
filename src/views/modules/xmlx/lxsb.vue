@@ -103,7 +103,7 @@ import {
 import msg from 'utils/loadmsg'
 
 import { isEmptyObjecct } from 'utils/validate' // GNM
-import bus from 'src/components/bus'
+import bus from '../../../components/bus'
 import { validData } from 'utils/index'
 import { mapGetters } from 'vuex'
 

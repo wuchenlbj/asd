@@ -44,7 +44,7 @@
 <script>
 // import Login from './Login.js';
 
-import carrousel from "src/components/Login/swiper";
+import carrousel from "../components/Login/swiper";
 
 export default {
   components: {

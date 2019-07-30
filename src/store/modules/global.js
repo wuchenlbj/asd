@@ -1,6 +1,6 @@
 import {
   constantRouterMap
-} from 'src/config/router'
+} from '../../config/router'
 import Cookies from 'js-cookie'
 import {
   getPermissionData

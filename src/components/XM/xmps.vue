@@ -64,7 +64,7 @@
 <script>
 // import { getZY, getPsfs, savePSData } from "api/kxgzgl/pwgl.js"
 import { getPSDfXX, getPsfz, savePSPZ } from "api/kxgzgl/pwdf.js"
-import { parseTime3 } from 'config/filter.js'
+import { parseTime3 } from '../../config/filter.js'
 import { mapGetters } from 'vuex';
 import msg from 'utils/loadmsg'
 export default {

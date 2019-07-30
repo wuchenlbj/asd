@@ -27,7 +27,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import bus from 'src/components/bus'
+import bus from '../../components/bus'
 export default {
   name: 'list',
   data() {

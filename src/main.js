@@ -3,7 +3,7 @@
 import Vue from 'vue'
 import App from './App'
 import store from './store/' // vuex store状态管理
-import router from 'src/config/router' // 路由配置文件
+import router from '@/config/router' // 路由配置文件
 
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'

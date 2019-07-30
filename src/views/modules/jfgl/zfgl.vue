@@ -103,7 +103,7 @@
 </template>
 
 <script >
-import bus from 'src/components/bus'
+import bus from '../../../components/bus'
 import { NewGuid } from '@/config/filter'
 import { getXmPC } from 'api/xtsz/fzdw.js'
 import { mapGetters } from 'vuex'

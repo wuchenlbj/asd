@@ -7,7 +7,7 @@
 </template>  
 
 <script>
-import xmps from "src/components/XM/xmps.vue"
+import xmps from "../../../components/XM/xmps.vue"
 export default {
   name: "xmpslx",
   components: {

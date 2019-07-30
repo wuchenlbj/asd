@@ -7,9 +7,9 @@
 </template>
 
 <script >
-import treeSelect from '../components/Common/treeSelect/tree.vue'
+import treeSelect from '@/components/Common/treeSelect/tree.vue'
 import { GetUnitTree } from 'api/common/xm.js'
-import bus from 'src/components/bus'
+import bus from '@/components/bus'
 export default {
   name: 'combfzdw',
   components: {

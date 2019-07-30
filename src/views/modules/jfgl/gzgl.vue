@@ -107,7 +107,7 @@ import { mapGetters } from 'vuex';
 import { getHTXX } from 'api/xmgl/htgl/index.js'
 import { saveGZData, getGZData } from 'api/qmys/index.js'
 import msg from 'utils/loadmsg'
-import bus from 'src/components/bus'
+import bus from '../../../components/bus'
 
 export default {
   name: 'cgdj',

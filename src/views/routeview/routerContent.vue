@@ -13,11 +13,11 @@
 </template>
 <script>
 import store from '@/store/' // vuex store状态管理
-import router from 'src/config/router' // 路由配置文件
+import router from '../../config/router' // 路由配置文件
 import { TreeGrid } from '../../components/Common/treegrid'
 import { mapGetters } from 'vuex'
 // import { getPermissionData } from 'api/permission'
-import { constantRouterMap } from 'src/config/router'
+import { constantRouterMap } from '../../config/router'
 const _import = file => {
   return 'views/' + file + '.vue'
 }

@@ -73,7 +73,7 @@ module.exports = {
             .set('_c', resolve('src/components'))
             .set('assets', resolve('src/assets'))
             .set('styles', resolve('src/assets/css'))
-            .set('common',resolve('src/Components/common'))
+            .set('common',resolve('src/components/Common'))
         // 打包文件带hash
         config.output.filename('[name].[hash].js').end()
 

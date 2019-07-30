@@ -18,7 +18,7 @@
 
 <script>
 // import VueDragTree from 'vue-drag-tree'
-import zTree from 'src/components/Common/zTree.vue';
+import zTree from '../../../components/Common/zTree.vue';
 import { getDWNY, saveTreeData, addTreeData, editTreeData } from 'api/xtsz/fzdw.js';
 import { GetUnitTree } from 'api/common/xm.js';
 export default {

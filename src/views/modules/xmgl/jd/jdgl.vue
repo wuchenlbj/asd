@@ -81,7 +81,7 @@
 </template>
 <script>
 import UploadExcel from '../../../../components/Common/UploadExcel'
-import selectfzdw from 'src/components/XM/fzdw'
+import selectfzdw from '../../../../components/XM/fzdw'
 
 import exxls from 'common/xlsx/tabletoexcel' // GNM 更改导出方式
 
@@ -91,7 +91,7 @@ import {
   exportJDBBExcelData
 } from 'api/xmgl/index.js'
 import msg from 'utils/loadmsg'
-import bus from 'src/components/bus'
+import bus from '../../../../components/bus'
 import { getcurNY } from 'utils/index'
 
 import { mapGetters } from 'vuex' // GNM

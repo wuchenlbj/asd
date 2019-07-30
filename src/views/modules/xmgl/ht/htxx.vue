@@ -121,7 +121,7 @@ import {
   getQdfs
 } from 'api/xmgl/htgl/index.js'
 import { mapGetters } from 'vuex'
-import bus from 'src/components/bus'
+import bus from '../../../../components/bus'
 import msg from 'utils/loadmsg'
 export default {
   name: 'htqtsq',

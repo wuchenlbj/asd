@@ -69,7 +69,7 @@
 import UploadExcel from '../../../../components/Common/UploadExcel'
 import { saveExcelData, getXmXLData, getXmJZByNDData, saveXmJZData } from 'api/xmgl/xdjh/index.js'
 import msg from 'utils/loadmsg'
-import bus from 'src/components/bus'
+import bus from '../../../../components/bus'
 import { getcurYear } from 'utils/index'
 import exxls from 'common/xlsx/tabletoexcel'
 import { mapGetters } from 'vuex'; // GNM
