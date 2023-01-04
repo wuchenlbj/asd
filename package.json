@@ -35,9 +35,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
-    "@vue/cli-plugin-babel": "^3.9.0",
+    "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "^3.9.0",
-    "@vue/cli-service": "^3.9.0",
+    "@vue/cli-service": "^5.0.8",
     "animate.css": "^3.7.2",
     "babel-eslint": "^10.0.1",
     "babel-loader": "^7.1.5",
